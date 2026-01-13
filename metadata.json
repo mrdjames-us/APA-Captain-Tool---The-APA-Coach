@@ -1,0 +1,5 @@
+{
+  "name": "APA Coach: Team Strategist",
+  "description": "A high-performance pool team management app for optimizing lineups, tracking player skill levels (1-7), monitoring 8-ball and 9-ball game counts, and ensuring monthly play requirements are met using Gemini AI.",
+  "requestFramePermissions": []
+}
