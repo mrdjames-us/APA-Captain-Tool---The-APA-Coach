@@ -1,21 +1,53 @@
 
-import React, { useState, useMemo } from 'react';
-import { Player, SkillLevel, Match, GameType } from '../types';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Player, SkillLevel, Match, GameType, User } from '../types';
 import { suggestLineup } from '../services/gemini';
-import { Sparkles, BrainCircuit, Save, Swords, Target, Users, Check, X } from 'lucide-react';
+import { Sparkles, BrainCircuit, Save, Swords, Target, Users, Check, X, CloudUpload, FileEdit, CheckCircle2 } from 'lucide-react';
 
 interface MatchPlannerProps {
   players: Player[];
   onMatchComplete: (match: Match) => void;
+  user: User;
 }
 
-export const MatchPlanner: React.FC<MatchPlannerProps> = ({ players, onMatchComplete }) => {
+export const MatchPlanner: React.FC<MatchPlannerProps> = ({ players, onMatchComplete, user }) => {
   const [opponentTeamName, setOpponentTeamName] = useState('');
   const [opponentSkills, setOpponentSkills] = useState<SkillLevel[]>(new Array(10).fill(3));
   const [assignments, setAssignments] = useState<(string | null)[]>(new Array(10).fill(null));
   const [results, setResults] = useState<('Win' | 'Loss' | null)[]>(new Array(10).fill(null));
   const [isLoading, setIsLoading] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+
+  const PROGRESS_KEY = `cuemaster_inprogress_${user.id}`;
+
+  // Load in-progress match on mount
+  useEffect(() => {
+    const saved = localStorage.getItem(PROGRESS_KEY);
+    if (saved) {
+      try {
+        const data = JSON.parse(saved);
+        setOpponentTeamName(data.opponentTeamName || '');
+        setOpponentSkills(data.opponentSkills || new Array(10).fill(3));
+        setAssignments(data.assignments || new Array(10).fill(null));
+        setResults(data.results || new Array(10).fill(null));
+      } catch (e) {
+        console.error("Failed to restore battle progress", e);
+      }
+    }
+  }, [PROGRESS_KEY]);
+
+  const handleSaveProgress = () => {
+    const data = {
+      opponentTeamName,
+      opponentSkills,
+      assignments,
+      results
+    };
+    localStorage.setItem(PROGRESS_KEY, JSON.stringify(data));
+    setIsSaved(true);
+    setTimeout(() => setIsSaved(false), 3000);
+  };
 
   const skillTotal8Ball = useMemo(() => {
     return [0, 1, 2, 3, 4].reduce((sum, idx) => {
@@ -33,9 +65,12 @@ export const MatchPlanner: React.FC<MatchPlannerProps> = ({ players, onMatchComp
 
   const handleSuggest = async () => {
     setIsLoading(true);
-    const result = await suggestLineup(players, opponentSkills);
+    const result = await suggestLineup(players, opponentSkills, assignments);
     if (result && result.assignments) {
-      setAssignments(result.assignments.slice(0, 10));
+      const mergedAssignments = assignments.map((current, idx) => {
+        return current ? current : result.assignments[idx];
+      });
+      setAssignments(mergedAssignments);
     }
     setIsLoading(false);
   };
@@ -61,58 +96,82 @@ export const MatchPlanner: React.FC<MatchPlannerProps> = ({ players, onMatchComp
       totalLosses
     });
 
+    // Clear local storage and state
+    localStorage.removeItem(PROGRESS_KEY);
     setAssignments(new Array(10).fill(null));
     setResults(new Array(10).fill(null));
     setOpponentTeamName('');
     setShowConfirm(false);
   };
 
-  const isReady = assignments.every(a => a !== null) && 
-                  results.every(r => r !== null) && 
+  const isReady = assignments.some(a => a !== null) && 
                   skillTotal8Ball <= 23 && 
                   skillTotal9Ball <= 23;
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700 pb-32">
-      <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <header className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         <div>
           <h2 className="text-3xl font-bold flex items-center gap-3">
             <Swords className="text-indigo-500 w-8 h-8" />
             Tactical War Room
           </h2>
-          <p className="text-slate-400 mt-1">Live matchup tracking & win/loss recording.</p>
+          <p className="text-slate-400 mt-1">Live matchup tracking & battle state persistence.</p>
         </div>
-        <button 
-          onClick={handleSuggest}
-          disabled={isLoading || players.length === 0}
-          className="flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 disabled:opacity-50 text-white px-6 py-3 rounded-2xl font-bold transition-all shadow-xl shadow-indigo-500/20"
-        >
-          {isLoading ? <BrainCircuit className="w-5 h-5 animate-pulse" /> : <Sparkles className="w-5 h-5" />}
-          <span>AI Matchup Engine</span>
-        </button>
+        <div className="flex flex-wrap gap-3">
+          <button 
+            onClick={handleSaveProgress}
+            className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-bold transition-all border ${
+              isSaved 
+              ? 'bg-emerald-500/10 border-emerald-500/50 text-emerald-400' 
+              : 'bg-slate-800 border-slate-700 text-slate-300 hover:bg-slate-700'
+            }`}
+          >
+            {isSaved ? <CheckCircle2 className="w-5 h-5 animate-in zoom-in" /> : <CloudUpload className="w-5 h-5" />}
+            <span>{isSaved ? 'Progress Synced' : 'Sync Battle State'}</span>
+          </button>
+          
+          <button 
+            onClick={handleSuggest}
+            disabled={isLoading || players.length === 0}
+            className="flex items-center gap-2 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 disabled:opacity-50 text-white px-6 py-3 rounded-2xl font-bold transition-all shadow-xl shadow-indigo-500/20"
+          >
+            {isLoading ? <BrainCircuit className="w-5 h-5 animate-pulse" /> : <Sparkles className="w-5 h-5" />}
+            <span>AI Matchup Engine</span>
+          </button>
+        </div>
       </header>
 
-      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl">
+      <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 shadow-2xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 p-4 opacity-10">
+          <FileEdit className="w-20 h-20 text-indigo-500" />
+        </div>
         <label className="text-xs font-black text-slate-500 uppercase tracking-widest block mb-2">Opposing Team</label>
         <input 
           type="text" 
           placeholder="e.g. Corner Pocket Kings" 
           value={opponentTeamName}
           onChange={(e) => setOpponentTeamName(e.target.value)}
-          className="w-full bg-slate-950 border border-slate-800 rounded-2xl px-5 py-3 text-lg font-bold text-indigo-400 focus:ring-2 focus:ring-indigo-500 outline-none transition-all"
+          className="w-full bg-slate-950 border border-slate-800 rounded-2xl px-5 py-3 text-lg font-bold text-indigo-400 focus:ring-2 focus:ring-indigo-500 outline-none transition-all relative z-10"
         />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className={`p-6 rounded-3xl border ${skillTotal8Ball > 23 ? 'bg-rose-500/10 border-rose-500' : 'bg-slate-900 border-slate-800'}`}>
-          <p className="text-slate-400 text-xs font-bold uppercase mb-2">8-Ball Budget</p>
+        <div className={`p-6 rounded-3xl border transition-colors ${skillTotal8Ball > 23 ? 'bg-rose-500/10 border-rose-500' : 'bg-slate-900 border-slate-800'}`}>
+          <div className="flex justify-between items-start">
+            <p className="text-slate-400 text-xs font-bold uppercase mb-2">8-Ball Budget</p>
+            {skillTotal8Ball > 23 && <span className="text-[10px] font-black text-rose-500 uppercase animate-pulse">OVER BUDGET</span>}
+          </div>
           <div className="flex items-baseline gap-2">
             <span className="text-4xl font-black">{skillTotal8Ball}</span>
             <span className="text-lg text-slate-600">/ 23</span>
           </div>
         </div>
-        <div className={`p-6 rounded-3xl border ${skillTotal9Ball > 23 ? 'bg-rose-500/10 border-rose-500' : 'bg-slate-900 border-slate-800'}`}>
-          <p className="text-slate-400 text-xs font-bold uppercase mb-2">9-Ball Budget</p>
+        <div className={`p-6 rounded-3xl border transition-colors ${skillTotal9Ball > 23 ? 'bg-rose-500/10 border-rose-500' : 'bg-slate-900 border-slate-800'}`}>
+          <div className="flex justify-between items-start">
+            <p className="text-slate-400 text-xs font-bold uppercase mb-2">9-Ball Budget</p>
+            {skillTotal9Ball > 23 && <span className="text-[10px] font-black text-rose-500 uppercase animate-pulse">OVER BUDGET</span>}
+          </div>
           <div className="flex items-baseline gap-2">
             <span className="text-4xl font-black">{skillTotal9Ball}</span>
             <span className="text-lg text-slate-600">/ 23</span>
@@ -215,12 +274,12 @@ export const MatchPlanner: React.FC<MatchPlannerProps> = ({ players, onMatchComp
         ) : (
           <div className="bg-slate-900 border border-slate-700 p-8 rounded-[3rem] shadow-2xl flex flex-col items-center gap-6 animate-in slide-in-from-bottom-12 duration-500">
             <div className="text-center">
-              <h4 className="text-2xl font-black">Confirm Results?</h4>
-              <p className="text-sm text-slate-500 mt-2">This will record session stats for all players.</p>
+              <h4 className="text-2xl font-black text-white">Confirm Results?</h4>
+              <p className="text-sm text-slate-500 mt-2">This will record session stats and clear battle progress.</p>
             </div>
             <div className="flex gap-4 w-full">
-              <button onClick={finalizeMatch} className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white py-4 rounded-3xl font-black text-xs uppercase">Confirm</button>
-              <button onClick={() => setShowConfirm(false)} className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 py-4 rounded-3xl font-black text-xs uppercase">Cancel</button>
+              <button onClick={finalizeMatch} className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white py-4 rounded-3xl font-black text-xs uppercase transition-colors">Confirm</button>
+              <button onClick={() => setShowConfirm(false)} className="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 py-4 rounded-3xl font-black text-xs uppercase transition-colors">Cancel</button>
             </div>
           </div>
         )}

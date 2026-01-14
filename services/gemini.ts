@@ -4,32 +4,43 @@ import { Player, SkillLevel } from "../types";
 
 export const suggestLineup = async (
   players: Player[],
-  opponentSkills: SkillLevel[]
+  opponentSkills: SkillLevel[],
+  currentAssignments: (string | null)[]
 ) => {
-  // Always create a fresh instance as per high-quality requirements
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   
+  // Identify players already assigned to calculate remaining budget
+  const assignedPlayersInfo = currentAssignments.map((id, index) => {
+    if (!id) return null;
+    const p = players.find(player => player.id === id);
+    return p ? { name: p.name, skill: index < 5 ? p.skillLevel8Ball : p.skillLevel9Ball } : null;
+  });
+
   const prompt = `
-    As a professional pool team captain using the APA Coach system, optimize a 10-game lineup (5 8-Ball games, 5 9-Ball games).
+    As a professional pool team captain, complete a 10-game lineup. 
+    Matches 1-5 are 8-Ball. Matches 6-10 are 9-Ball.
+
+    TEAM ROSTER DATA:
+    ${players.map(p => `- ID: ${p.id}, Name: ${p.name}, 8B-SL: ${p.skillLevel8Ball}, 9B-SL: ${p.skillLevel9Ball}, 8B-Games: ${p.games8Ball}, 9B-Games: ${p.games9Ball}, Total Wins: ${p.wins8Ball + p.wins9Ball}`).join('\n')}
     
-    My Team Players (ID, Name, 8B-Skill, 9B-Skill, Monthly Games Played):
-    ${players.map(p => `- ${p.id}: ${p.name} (8B: ${p.skillLevel8Ball}, 9B: ${p.skillLevel9Ball}, Played: ${p.monthlyParticipation})`).join('\n')}
+    CURRENT PARTIAL LINEUP (DO NOT CHANGE THESE):
+    ${currentAssignments.map((id, i) => `Match ${i + 1}: ${id ? `STAY WITH Player ID ${id}` : 'EMPTY - YOU MUST SUGGEST A PLAYER'}`).join('\n')}
+
+    OPPONENT SKILLS:
+    ${opponentSkills.map((s, i) => `Match ${i + 1}: Skill ${s}`).join(', ')}
     
-    Opponent Skill Levels for the 10 games (Games 1-5: 8-Ball, Games 6-10: 9-Ball):
-    ${opponentSkills.map((s, i) => `Game ${i + 1}: Skill ${s}`).join(', ')}
-    
-    CRITICAL RULES:
-    1. THE RULE OF 23 (8-Ball): The total of the 8-Ball Skill Levels for the 5 players in Games 1-5 MUST NOT EXCEED 23.
-    2. THE RULE OF 23 (9-Ball): The total of the 9-Ball Skill Levels for the 5 players in Games 6-10 MUST NOT EXCEED 23.
-    3. MONTHLY QUOTA: Each player needs a minimum of 4 games per month. Heavily prioritize assigning players with 'Played' counts less than 4.
-    4. COMPETITIVENESS: Try to match player skill level to opponent skill level while respecting the Rule of 23.
-    
-    Return a list of 10 Player IDs assigned to these 10 games in order.
+    CRITICAL TACTICAL CONSTRAINTS:
+    1. RULE OF 23: The total skill level of players in Matches 1-5 (8-Ball) MUST NOT exceed 23. Total skill for Matches 6-10 (9-Ball) MUST NOT exceed 23. You must factor in the pre-filled players.
+    2. PRIORITY 1 (QUALIFICATION): Heavily prioritize players who have FEWER THAN 4 games in the format they are being assigned to (8-Ball for matches 1-5, 9-Ball for 6-10).
+    3. PRIORITY 2 (WINNERS): If qualification needs are met, select the players with the HIGHEST win counts to maximize team success.
+    4. NO DUPLICATES IN FORMAT: A player can only play ONCE in the 8-Ball set and ONCE in the 9-Ball set (though they can play in both sets).
+
+    Return a full array of 10 Player IDs. For slots that were already filled, return the same ID provided in the partial lineup.
   `;
 
   try {
     const response = await ai.models.generateContent({
-      model: "gemini-3-flash-preview",
+      model: "gemini-3-pro-preview",
       contents: prompt,
       config: {
         responseMimeType: "application/json",
@@ -39,11 +50,11 @@ export const suggestLineup = async (
             assignments: {
               type: Type.ARRAY,
               items: { type: Type.STRING },
-              description: "Array of 10 player IDs for the 10 games in sequence."
+              description: "Array of 10 player IDs for the 10 games."
             },
             reasoning: {
               type: Type.STRING,
-              description: "Brief explanation of the strategy used."
+              description: "Short tactical summary of why these players were chosen."
             }
           },
           required: ["assignments"]
