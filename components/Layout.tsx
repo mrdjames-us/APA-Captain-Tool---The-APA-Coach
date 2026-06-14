@@ -95,7 +95,7 @@ export const Layout: React.FC<LayoutProps> = ({
             </div>
             <div className="min-w-0">
               <p className="text-xs font-bold text-white truncate">{user.displayName}</p>
-              <p className="font-mono text-[9px] truncate" style={{ color: 'rgba(0,229,255,0.5)' }}>
+              <p className="font-mono text-[10px] truncate" style={{ color: 'rgba(0,229,255,0.85)' }}>
                 {user.provider.toUpperCase()} · {user.email.split('@')[0]}
               </p>
             </div>
@@ -125,7 +125,7 @@ export const Layout: React.FC<LayoutProps> = ({
           {/* Squad strength */}
           <div className="pt-4 px-2">
             <div className="flex justify-between items-center mb-2">
-              <span className="section-label opacity-60">Squad Strength</span>
+              <span className="section-label">Squad Strength</span>
               <span className="font-mono text-xs" style={{ color: '#00E5FF' }}>
                 {playerCount}<span style={{ color: 'rgba(208,232,255,0.3)' }}>/8</span>
               </span>

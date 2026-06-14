@@ -71,7 +71,7 @@ const StatCard: React.FC<StatCardProps> = ({ icon, label, value, sub, accentColo
   >
     <div className="flex items-center gap-3 mb-4">
       <span style={{ color: accentColor }}>{icon}</span>
-      <span className="section-label" style={{ color: `${accentColor}99` }}>{label}</span>
+      <span className="section-label" style={{ color: `${accentColor}dd` }}>{label}</span>
     </div>
     <p
       className="stat-num"
@@ -82,7 +82,7 @@ const StatCard: React.FC<StatCardProps> = ({ icon, label, value, sub, accentColo
     >
       {value}
     </p>
-    <p style={{ fontSize: 10, color: 'rgba(208,232,255,0.35)', marginTop: 8, fontFamily: 'Space Mono, monospace' }}>
+    <p style={{ fontSize: 11, color: 'rgba(208,232,255,0.75)', marginTop: 8, fontFamily: 'Space Mono, monospace' }}>
       {sub}
     </p>
   </div>
@@ -144,7 +144,7 @@ export const Performance: React.FC<PerformanceProps> = ({
           >
             TACTICAL HISTORY
           </h2>
-          <p className="section-label mt-2" style={{ color: 'rgba(255,183,0,0.4)' }}>
+          <p className="section-label mt-2" style={{ color: 'rgba(255,183,0,0.82)' }}>
             Combat effectiveness &amp; seasonal mission data
           </p>
         </div>
@@ -175,7 +175,7 @@ export const Performance: React.FC<PerformanceProps> = ({
           >
             CONFIRM MISSION COMPLETION
           </h3>
-          <p style={{ fontSize: 12, color: 'rgba(208,232,255,0.4)', marginBottom: 24, lineHeight: 1.6 }}>
+          <p style={{ fontSize: 13, color: 'rgba(208,232,255,0.78)', marginBottom: 24, lineHeight: 1.6 }}>
             This will archive all active matches and reset player session stats.
             Historical data will be preserved in the mission archive.
           </p>
@@ -288,8 +288,8 @@ export const Performance: React.FC<PerformanceProps> = ({
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-              <div className="flex items-center justify-center h-full" style={{ color: 'rgba(208,232,255,0.2)' }}>
-                <p className="section-label">No player data yet</p>
+              <div className="flex items-center justify-center h-full">
+                <p className="section-label" style={{ color: 'rgba(208,232,255,0.6)' }}>No player data yet</p>
               </div>
             )}
           </div>
@@ -345,8 +345,8 @@ export const Performance: React.FC<PerformanceProps> = ({
                 </LineChart>
               </ResponsiveContainer>
             ) : (
-              <div className="flex items-center justify-center h-full" style={{ color: 'rgba(208,232,255,0.2)' }}>
-                <p className="section-label">No match timeline yet</p>
+              <div className="flex items-center justify-center h-full">
+                <p className="section-label" style={{ color: 'rgba(208,232,255,0.6)' }}>No match timeline yet</p>
               </div>
             )}
           </div>
@@ -375,11 +375,11 @@ export const Performance: React.FC<PerformanceProps> = ({
               textAlign: 'center',
             }}
           >
-            <Archive style={{ width: 40, height: 40, color: 'rgba(0,229,255,0.15)', marginBottom: 14 }} />
-            <p className="section-label" style={{ color: 'rgba(208,232,255,0.25)' }}>
+            <Archive style={{ width: 40, height: 40, color: 'rgba(0,229,255,0.4)', marginBottom: 14 }} />
+            <p className="section-label" style={{ color: 'rgba(208,232,255,0.7)' }}>
               No historical archives found
             </p>
-            <p style={{ fontSize: 10, color: 'rgba(208,232,255,0.15)', marginTop: 6, fontFamily: 'Space Mono, monospace' }}>
+            <p style={{ fontSize: 12, color: 'rgba(208,232,255,0.55)', marginTop: 6, fontFamily: 'Space Mono, monospace' }}>
               End a session to create the first archive
             </p>
           </div>
@@ -422,7 +422,7 @@ export const Performance: React.FC<PerformanceProps> = ({
                       </h4>
                       <p
                         className="section-label mt-1"
-                        style={{ color: 'rgba(208,232,255,0.35)' }}
+                        style={{ color: 'rgba(208,232,255,0.68)' }}
                       >
                         {new Date(archive.startDate).toLocaleDateString()}
                         {' — '}
@@ -441,7 +441,7 @@ export const Performance: React.FC<PerformanceProps> = ({
                         }}>
                           {archiveWinPct}%
                         </p>
-                        <p className="section-label" style={{ color: 'rgba(208,232,255,0.3)' }}>Win Rate</p>
+                        <p className="section-label" style={{ color: 'rgba(208,232,255,0.65)' }}>Win Rate</p>
                       </div>
 
                       <div style={{
@@ -458,7 +458,7 @@ export const Performance: React.FC<PerformanceProps> = ({
                         }}>
                           {archive.matches.length}
                         </p>
-                        <p className="section-label" style={{ color: 'rgba(208,232,255,0.3)' }}>Matches</p>
+                        <p className="section-label" style={{ color: 'rgba(208,232,255,0.65)' }}>Matches</p>
                       </div>
                     </div>
                   </div>

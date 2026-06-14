@@ -150,7 +150,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           >
             COMMAND BOARD
           </h2>
-          <p className="section-label mt-2" style={{ color: 'rgba(0,229,255,0.45)' }}>
+          <p className="section-label mt-2" style={{ color: 'rgba(0,229,255,0.82)' }}>
             Tactical deployment &amp; mission readiness
           </p>
         </div>
@@ -363,8 +363,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-              <div className="flex items-center justify-center h-full" style={{ color: 'rgba(208,232,255,0.2)' }}>
-                <p className="section-label">No match data yet</p>
+              <div className="flex items-center justify-center h-full">
+                <p className="section-label" style={{ color: 'rgba(208,232,255,0.6)' }}>No match data yet</p>
               </div>
             )}
           </div>
@@ -373,7 +373,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             {[{ label: '8-Ball', color: CYAN }, { label: '9-Ball', color: MAGENTA }].map(({ label, color }) => (
               <div key={label} className="flex items-center gap-2">
                 <div style={{ width: 8, height: 8, borderRadius: 2, background: color, boxShadow: `0 0 6px ${color}` }} />
-                <span className="section-label" style={{ color: 'rgba(208,232,255,0.5)' }}>{label}</span>
+                <span className="section-label" style={{ color: 'rgba(208,232,255,0.8)' }}>{label}</span>
               </div>
             ))}
           </div>
@@ -440,8 +440,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 </PieChart>
               </ResponsiveContainer>
             ) : (
-              <div className="flex items-center justify-center h-full" style={{ color: 'rgba(208,232,255,0.2)' }}>
-                <p className="section-label">No deployment data</p>
+              <div className="flex items-center justify-center h-full">
+                <p className="section-label" style={{ color: 'rgba(208,232,255,0.6)' }}>No deployment data</p>
               </div>
             )}
           </div>

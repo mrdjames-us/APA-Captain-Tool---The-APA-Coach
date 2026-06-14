@@ -104,7 +104,7 @@ export const MatchPlanner: React.FC<MatchPlannerProps> = ({
           <h2 className="font-orbitron font-black text-2xl md:text-3xl tracking-wider text-glow-cyan" style={{ color: '#00E5FF' }}>
             MATCH PLANNER
           </h2>
-          <p className="text-sm mt-1" style={{ color: 'rgba(208,232,255,0.45)' }}>
+          <p className="text-sm mt-1" style={{ color: 'rgba(208,232,255,0.78)' }}>
             Rule of 23 · AI lineup optimisation
           </p>
         </div>
@@ -149,7 +149,7 @@ export const MatchPlanner: React.FC<MatchPlannerProps> = ({
               <span className="stat-num" style={{ color: over ? '#FF0066' : '#D0E8FF', textShadow: over ? '0 0 12px rgba(255,0,102,0.8)' : undefined }}>
                 {total}
               </span>
-              <span className="font-mono text-lg" style={{ color: 'rgba(208,232,255,0.25)' }}>/ 23</span>
+              <span className="font-mono text-lg" style={{ color: 'rgba(208,232,255,0.65)' }}>/ 23</span>
               {over && <span className="section-label animate-pulse" style={{ color: '#FF0066' }}>OVER</span>}
             </div>
           </div>
@@ -171,7 +171,7 @@ export const MatchPlanner: React.FC<MatchPlannerProps> = ({
               return (
                 <div key={idx} className="card rounded p-4 space-y-3">
                   <div className="flex items-center gap-3">
-                    <span className="font-mono text-xs w-6 shrink-0" style={{ color: 'rgba(208,232,255,0.3)' }}>
+                    <span className="font-mono text-xs w-6 shrink-0" style={{ color: 'rgba(208,232,255,0.65)' }}>
                       {String(idx + 1).padStart(2, '0')}
                     </span>
                     <select
@@ -190,7 +190,7 @@ export const MatchPlanner: React.FC<MatchPlannerProps> = ({
 
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <span className="section-label" style={{ color: 'rgba(208,232,255,0.35)' }}>Opp SL</span>
+                      <span className="section-label" style={{ color: 'rgba(208,232,255,0.75)' }}>Opp SL</span>
                       <select
                         value={opponentSkills[idx]}
                         onChange={e => { const s = [...opponentSkills]; s[idx] = Number(e.target.value) as SkillLevel; setOpponentSkills(s); }}
@@ -204,14 +204,14 @@ export const MatchPlanner: React.FC<MatchPlannerProps> = ({
                         className="px-3 py-1.5 rounded text-xs font-orbitron font-bold transition-all"
                         style={win
                           ? { background: 'rgba(0,255,136,0.15)', border: '1px solid #00FF88', color: '#00FF88', boxShadow: '0 0 12px rgba(0,255,136,0.4)' }
-                          : { background: 'transparent', border: '1px solid rgba(208,232,255,0.15)', color: 'rgba(208,232,255,0.4)' }}>
+                          : { background: 'transparent', border: '1px solid rgba(208,232,255,0.3)', color: 'rgba(208,232,255,0.7)' }}>
                         W
                       </button>
                       <button onClick={() => { const r = [...results]; r[idx] = loss ? null : 'Loss'; setResults(r); }}
                         className="px-3 py-1.5 rounded text-xs font-orbitron font-bold transition-all"
                         style={loss
                           ? { background: 'rgba(255,0,102,0.15)', border: '1px solid #FF0066', color: '#FF0066', boxShadow: '0 0 12px rgba(255,0,102,0.4)' }
-                          : { background: 'transparent', border: '1px solid rgba(208,232,255,0.15)', color: 'rgba(208,232,255,0.4)' }}>
+                          : { background: 'transparent', border: '1px solid rgba(208,232,255,0.3)', color: 'rgba(208,232,255,0.7)' }}>
                         L
                       </button>
                     </div>
@@ -235,7 +235,7 @@ export const MatchPlanner: React.FC<MatchPlannerProps> = ({
             style={{ border: '1px solid rgba(0,229,255,0.4)', boxShadow: '0 0 60px rgba(0,229,255,0.15)' }}>
             <div className="text-center">
               <h4 className="font-orbitron font-black text-lg text-white">CONFIRM RESULTS?</h4>
-              <p className="text-xs mt-2" style={{ color: 'rgba(208,232,255,0.45)' }}>Records stats · clears match state</p>
+              <p className="text-xs mt-2" style={{ color: 'rgba(208,232,255,0.75)' }}>Records stats · clears match state</p>
             </div>
             <div className="flex gap-4 w-full">
               <button onClick={finalizeMatch}
@@ -244,9 +244,9 @@ export const MatchPlanner: React.FC<MatchPlannerProps> = ({
               </button>
               <button onClick={() => setShowConfirm(false)}
                 className="flex-1 py-3 rounded font-orbitron text-xs font-bold uppercase tracking-widest transition-all"
-                style={{ border: '1px solid rgba(208,232,255,0.15)', color: 'rgba(208,232,255,0.5)' }}
-                onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(208,232,255,0.4)')}
-                onMouseLeave={e => (e.currentTarget.style.borderColor = 'rgba(208,232,255,0.15)')}>
+                style={{ border: '1px solid rgba(208,232,255,0.35)', color: 'rgba(208,232,255,0.75)' }}
+                onMouseEnter={e => (e.currentTarget.style.borderColor = 'rgba(208,232,255,0.65)')}
+                onMouseLeave={e => (e.currentTarget.style.borderColor = 'rgba(208,232,255,0.35)')}>
                 CANCEL
               </button>
             </div>

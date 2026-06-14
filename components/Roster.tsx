@@ -276,7 +276,7 @@ export const Roster: React.FC<RosterProps> = ({
               onClick={() => setShowArchived(false)}
               className="section-label pb-1 transition-all"
               style={{
-                color: !showArchived ? '#00E5FF' : '#445566',
+                color: !showArchived ? '#00E5FF' : 'rgba(180,220,255,0.45)',
                 borderBottom: !showArchived ? '2px solid #00E5FF' : '2px solid transparent',
               }}
             >
@@ -286,7 +286,7 @@ export const Roster: React.FC<RosterProps> = ({
               onClick={() => setShowArchived(true)}
               className="section-label pb-1 transition-all"
               style={{
-                color: showArchived ? '#FF0066' : '#445566',
+                color: showArchived ? '#FF0066' : 'rgba(180,220,255,0.45)',
                 borderBottom: showArchived ? '2px solid #FF0066' : '2px solid transparent',
               }}
             >
@@ -336,7 +336,7 @@ export const Roster: React.FC<RosterProps> = ({
             >
               ARCHIVE PLAYER?
             </h3>
-            <p className="text-center text-sm mb-6" style={{ color: '#8899aa' }}>
+            <p className="text-center text-sm mb-6" style={{ color: 'rgba(180,220,255,0.75)' }}>
               Moving{' '}
               <span className="font-bold" style={{ color: '#e0f7ff' }}>
                 {confirmArchivePlayer.name}
@@ -353,7 +353,7 @@ export const Roster: React.FC<RosterProps> = ({
               <button
                 onClick={() => setConfirmArchivePlayer(null)}
                 className="btn-neon w-full py-3 font-orbitron text-xs"
-                style={{ borderColor: '#334455', color: '#8899aa' }}
+                style={{ borderColor: 'rgba(180,220,255,0.3)', color: 'rgba(180,220,255,0.7)' }}
               >
                 CANCEL
               </button>
@@ -526,7 +526,7 @@ export const Roster: React.FC<RosterProps> = ({
                   <p className="font-orbitron text-sm" style={{ color: '#00E5FF' }}>
                     DROP IMAGE HERE
                   </p>
-                  <p className="text-xs mt-1" style={{ color: '#556677' }}>
+                  <p className="text-xs mt-1" style={{ color: 'rgba(180,220,255,0.65)' }}>
                     or click to browse · PNG, JPG, WebP
                   </p>
                 </div>
@@ -648,7 +648,7 @@ export const Roster: React.FC<RosterProps> = ({
                   <button
                     onClick={resetImport}
                     className="btn-neon px-5 py-3 font-orbitron text-xs"
-                    style={{ borderColor: '#334455', color: '#8899aa' }}
+                    style={{ borderColor: 'rgba(180,220,255,0.3)', color: 'rgba(180,220,255,0.7)' }}
                   >
                     RETRY
                   </button>
@@ -702,7 +702,7 @@ export const Roster: React.FC<RosterProps> = ({
                 type="button"
                 onClick={() => setIsAdding(false)}
                 className="btn-neon px-5 py-2 text-xs font-orbitron"
-                style={{ borderColor: '#334455', color: '#8899aa' }}
+                style={{ borderColor: 'rgba(180,220,255,0.3)', color: 'rgba(180,220,255,0.7)' }}
               >
                 CANCEL
               </button>
@@ -721,10 +721,10 @@ export const Roster: React.FC<RosterProps> = ({
             className="col-span-full py-20 flex flex-col items-center justify-center gap-4 rounded-3xl"
             style={{
               border: '2px dashed rgba(0,229,255,0.13)',
-              color: '#334455',
+              color: 'rgba(180,220,255,0.45)',
             }}
           >
-            <UserCheck className="w-12 h-12 opacity-20" />
+            <UserCheck className="w-12 h-12 opacity-40" />
             <p className="section-label">NO PERSONNEL FOUND</p>
           </div>
         ) : (
@@ -752,9 +752,9 @@ export const Roster: React.FC<RosterProps> = ({
                       onClick={() => setEditingPlayer(player)}
                       className="p-2 rounded-lg transition-colors"
                       title="Edit"
-                      style={{ color: '#445566' }}
+                      style={{ color: 'rgba(180,220,255,0.45)' }}
                       onMouseEnter={(e) => (e.currentTarget.style.color = '#00E5FF')}
-                      onMouseLeave={(e) => (e.currentTarget.style.color = '#445566')}
+                      onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(180,220,255,0.45)')}
                     >
                       <Edit2 className="w-4 h-4" />
                     </button>
@@ -763,7 +763,7 @@ export const Roster: React.FC<RosterProps> = ({
                       onClick={() => handleArchiveClick(player)}
                       className="p-2 rounded-lg transition-colors"
                       title={player.isActive ? 'Archive' : 'Restore'}
-                      style={{ color: player.isActive ? '#445566' : '#00E5FF' }}
+                      style={{ color: player.isActive ? 'rgba(180,220,255,0.45)' : '#00E5FF' }}
                     >
                       {player.isActive ? (
                         <Archive className="w-4 h-4" />
@@ -776,9 +776,9 @@ export const Roster: React.FC<RosterProps> = ({
                       onClick={() => onDeletePlayer(player.id)}
                       className="p-2 rounded-lg transition-colors"
                       title="Delete"
-                      style={{ color: '#445566' }}
+                      style={{ color: 'rgba(180,220,255,0.45)' }}
                       onMouseEnter={(e) => (e.currentTarget.style.color = '#FF0066')}
-                      onMouseLeave={(e) => (e.currentTarget.style.color = '#445566')}
+                      onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(180,220,255,0.45)')}
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -822,7 +822,7 @@ export const Roster: React.FC<RosterProps> = ({
                     <p className="section-label">TOTAL GAMES</p>
                     <p
                       className="stat-num"
-                      style={{ color: '#334455', fontSize: '1.5rem' }}
+                      style={{ color: 'rgba(180,220,255,0.45)', fontSize: '1.5rem' }}
                     >
                       {player.games8Ball + player.games9Ball}
                     </p>
