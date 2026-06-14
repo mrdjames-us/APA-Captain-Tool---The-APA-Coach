@@ -638,6 +638,11 @@ const EntryCard: React.FC<EntryCardProps> = ({ entry, dimmed, onDelete, onPlanMa
             style={{ fontSize: 12, color: dimmed ? '#555' : '#00E5FF', letterSpacing: '0.04em' }}
           >
             {formatDate(entry.date)}
+            {formatTime(entry.date) && (
+              <span style={{ color: dimmed ? '#444' : 'rgba(0,229,255,0.55)', marginLeft: 6, fontSize: 11 }}>
+                {formatTime(entry.date)}
+              </span>
+            )}
           </span>
         </div>
 
@@ -722,8 +727,8 @@ const EntryCard: React.FC<EntryCardProps> = ({ entry, dimmed, onDelete, onPlanMa
             gap: 5,
           }}
         >
-          <Upload style={{ width: 11, height: 11 }} />
           PLAN LINEUP
+          <ChevronRight style={{ width: 11, height: 11 }} />
         </button>
         <button
           onClick={() => onDelete(entry.id)}
@@ -806,9 +811,6 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
 
   const closeModal = () => {
     setActiveImport('none');
-    setImportError(null);
-    setImportParsed([]);
-    setImportSelected(new Set());
   };
 
   const handleImportConfirm = (entries: ParsedScheduleEntry[], selected: Set<number>) => {
