@@ -12,16 +12,13 @@
   },
   "dependencies": {
     "@google/genai": "^1.35.0",
-    "axios": "^1.17.0",
-    "axios-cookiejar-support": "^7.0.0",
     "cheerio": "^1.2.0",
     "cors": "^2.8.6",
     "express": "^5.2.1",
     "lucide-react": "^0.562.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
-    "recharts": "^3.6.0",
-    "tough-cookie": "^6.0.1"
+    "recharts": "^3.6.0"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",

@@ -1,6 +1,14 @@
+// Local development proxy server.
+//
+// In production the APA endpoints are served by Cloudflare Pages Functions
+// (see ../functions/api/apa/*). This Express server exists ONLY so the same
+// /api/apa/* routes work locally under `npm run dev` (Vite proxies /api here).
+// It shares the exact same scraping logic as the Pages Functions via
+// ../functions/_lib/apaScraper.js, so behavior never drifts between the two.
+
 import express from 'express';
 import cors from 'cors';
-import { APAService } from './apaService.js';
+import { apaLogin, apaGetRoster, apaGetStats } from '../functions/_lib/apaScraper.js';
 
 const app = express();
 const PORT = process.env.APA_SERVER_PORT || 3001;
@@ -13,61 +21,28 @@ app.use(
 );
 app.use(express.json());
 
-// In-memory session store: sessionId -> { service, createdAt }
-const sessions = new Map();
-
-// Evict sessions older than 2 hours
-setInterval(() => {
-  const cutoff = Date.now() - 2 * 60 * 60 * 1000;
-  for (const [id, data] of sessions.entries()) {
-    if (data.createdAt < cutoff) sessions.delete(id);
-  }
-}, 15 * 60 * 1000);
-
-function getSession(req, res) {
-  const sessionId = req.headers['x-apa-session'];
-  const session = sessions.get(sessionId);
-  if (!session) {
-    res.status(401).json({ success: false, error: 'APA session expired. Please reconnect.' });
-    return null;
-  }
-  return session;
-}
-
-// POST /api/apa/login
 app.post('/api/apa/login', async (req, res) => {
   const { memberId, password } = req.body || {};
   if (!memberId || !password) {
     return res.status(400).json({ success: false, error: 'Member ID and password are required.' });
   }
-
   try {
-    const service = new APAService();
-    const result = await service.login(String(memberId), String(password));
-
-    if (result.success) {
-      const sessionId = crypto.randomUUID();
-      sessions.set(sessionId, { service, createdAt: Date.now() });
-      return res.json({ success: true, sessionId, teamInfo: result.teamInfo });
-    }
-
-    return res.status(401).json({ success: false, error: result.error || 'Login failed.' });
+    const result = await apaLogin(String(memberId), String(password));
+    return res.status(result.success ? 200 : 401).json(result);
   } catch (err) {
     console.error('[APA /login]', err.message);
-    return res.status(500).json({
+    return res.status(502).json({
       success: false,
-      error: `Connection error: ${err.message}. Make sure poolplayers.com is reachable.`,
+      error: `Connection error reaching poolplayers.com: ${err.message}`,
     });
   }
 });
 
-// GET /api/apa/roster
 app.get('/api/apa/roster', async (req, res) => {
-  const session = getSession(req, res);
-  if (!session) return;
-
+  const sessionId = req.headers['x-apa-session'];
+  if (!sessionId) return res.status(401).json({ success: false, error: 'APA session expired. Please reconnect.' });
   try {
-    const roster = await session.service.getRoster();
+    const roster = await apaGetRoster(String(sessionId));
     return res.json({ success: true, roster });
   } catch (err) {
     console.error('[APA /roster]', err.message);
@@ -75,13 +50,11 @@ app.get('/api/apa/roster', async (req, res) => {
   }
 });
 
-// GET /api/apa/stats
 app.get('/api/apa/stats', async (req, res) => {
-  const session = getSession(req, res);
-  if (!session) return;
-
+  const sessionId = req.headers['x-apa-session'];
+  if (!sessionId) return res.status(401).json({ success: false, error: 'APA session expired. Please reconnect.' });
   try {
-    const stats = await session.service.getStats();
+    const stats = await apaGetStats(String(sessionId));
     return res.json({ success: true, stats });
   } catch (err) {
     console.error('[APA /stats]', err.message);
@@ -89,16 +62,9 @@ app.get('/api/apa/stats', async (req, res) => {
   }
 });
 
-// POST /api/apa/logout
-app.post('/api/apa/logout', (req, res) => {
-  const sessionId = req.headers['x-apa-session'];
-  if (sessionId) sessions.delete(sessionId);
-  return res.json({ success: true });
-});
-
-// Health check
-app.get('/api/apa/health', (_, res) => res.json({ ok: true }));
+app.post('/api/apa/logout', (_, res) => res.json({ success: true }));
+app.get('/api/apa/health', (_, res) => res.json({ ok: true, runtime: 'local-express' }));
 
 app.listen(PORT, () => {
-  console.log(`✓ APA Proxy Server → http://localhost:${PORT}`);
+  console.log(`✓ APA local dev proxy → http://localhost:${PORT}`);
 });
