@@ -84,49 +84,58 @@ export interface ParsedPlayer {
 }
 
 export const parseRosterScreenshot = async (base64Image: string, mimeType: string): Promise<ParsedPlayer[]> => {
+  if (!process.env.API_KEY) {
+    throw new Error('Screenshot import requires a Gemini API key. Add GEMINI_API_KEY to your Cloudflare Pages environment variables, then redeploy.');
+  }
+
   const ai = getAI();
 
-  try {
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: [
-        {
-          role: "user",
-          parts: [
-            {
-              inlineData: { mimeType, data: base64Image },
-            },
-            {
-              text: `Extract all pool players from this APA roster image.
-For each player find: full name, 8-Ball skill level (1-7), 9-Ball skill level (1-9, mapped to 1-7 for storage).
-If only one skill level is shown, use it for both.
-If skill level is not visible, default to 3.
-Return only the JSON array, nothing else.`,
-            },
-          ],
-        },
-      ],
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.ARRAY,
-          items: {
-            type: Type.OBJECT,
-            properties: {
-              name:             { type: Type.STRING },
-              skillLevel8Ball:  { type: Type.NUMBER },
-              skillLevel9Ball:  { type: Type.NUMBER },
-            },
-            required: ["name", "skillLevel8Ball", "skillLevel9Ball"],
+  const response = await ai.models.generateContent({
+    model: "gemini-2.5-flash",
+    contents: [
+      {
+        role: "user",
+        parts: [
+          {
+            inlineData: { mimeType, data: base64Image },
           },
+          {
+            text: `Extract all pool players from this APA roster image or table.
+This may be a screenshot from poolplayers.com showing a "Team Roster" table.
+
+For each player row extract:
+- name: the player's full name (ignore member ID numbers like #64001865)
+- skillLevel8Ball: their skill level as a number 1-7. The column may be labeled "Skill Level". If not shown, use 3.
+- skillLevel9Ball: same value as skillLevel8Ball unless a separate 9-ball skill level is shown.
+
+Ignore header rows and any non-player rows.
+Return a JSON array only, no other text.`,
+          },
+        ],
+      },
+    ],
+    config: {
+      responseMimeType: "application/json",
+      responseSchema: {
+        type: Type.ARRAY,
+        items: {
+          type: Type.OBJECT,
+          properties: {
+            name:             { type: Type.STRING },
+            skillLevel8Ball:  { type: Type.NUMBER },
+            skillLevel9Ball:  { type: Type.NUMBER },
+          },
+          required: ["name", "skillLevel8Ball", "skillLevel9Ball"],
         },
       },
-    });
-    return JSON.parse(response.text || '[]');
-  } catch (e) {
-    console.error("Gemini roster parse error:", e);
-    return [];
+    },
+  });
+
+  const parsed = JSON.parse(response.text || '[]');
+  if (!Array.isArray(parsed) || parsed.length === 0) {
+    throw new Error('No players found in the image. Make sure the roster table is clearly visible.');
   }
+  return parsed;
 };
 
 // ── Screenshot → Schedule ─────────────────────────────────────────────────────

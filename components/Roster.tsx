@@ -201,15 +201,10 @@ export const Roster: React.FC<RosterProps> = ({
       });
 
       const parsed = await parseRosterScreenshot(base64, file.type);
-
-      if (!parsed || parsed.length === 0) {
-        setImportError('No players detected in the screenshot. Try a clearer image.');
-      } else {
-        setImportParsed(parsed);
-        setImportSelected(new Set(parsed.map((_, i) => i)));
-      }
-    } catch {
-      setImportError('Failed to process image. Please try again.');
+      setImportParsed(parsed);
+      setImportSelected(new Set(parsed.map((_, i) => i)));
+    } catch (e: any) {
+      setImportError(e?.message || 'Failed to process image. Please try again.');
     } finally {
       setImportLoading(false);
     }
