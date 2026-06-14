@@ -1,284 +1,169 @@
 
-import React, { useState, useEffect } from 'react';
-import { Layout } from './components/Layout';
+import React, { useState, useCallback } from 'react';
+import { Layout, TabId } from './components/Layout';
+import { AuthScreen } from './components/AuthScreen';
 import { Dashboard } from './components/Dashboard';
 import { Roster } from './components/Roster';
 import { MatchPlanner } from './components/MatchPlanner';
 import { Performance } from './components/Performance';
-import { APASync } from './components/APASync';
-import { Player, SkillLevel, User, Match, SessionArchive, APAPlayer } from './types';
-import { Trophy, Shield, ChevronRight, Fingerprint, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { ScheduleView } from './components/ScheduleView';
 
-const INITIAL_PLAYERS: Player[] = [];
+import { useAuth } from './hooks/useAuth';
+import { usePlayers, useMatches, useArchives, useSchedule, useSeasonWeek } from './hooks/useFirestore';
+
+import { Player, SkillLevel, Match, GameType, SessionArchive, ScheduleEntry } from './types';
+import { Loader2 } from 'lucide-react';
 
 const App: React.FC = () => {
-  const [user, setUser] = useState<User | null>(() => {
-    const saved = localStorage.getItem('cuemaster_session');
-    return saved ? JSON.parse(saved) : null;
-  });
+  const { user, loading: authLoading, error: authError, loginGoogle, loginFacebook, logout } = useAuth();
+  const uid = user?.uid ?? null;
 
-  const [players, setPlayers] = useState<Player[]>([]);
-  const [matches, setMatches] = useState<Match[]>([]);
-  const [archives, setArchives] = useState<SessionArchive[]>([]);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'roster' | 'planner' | 'performance' | 'apaSync'>('dashboard');
-  
-  const [callsignInput, setCallsignInput] = useState('');
-  const [passwordInput, setPasswordInput] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const { players, save: savePlayer, remove: removePlayer } = usePlayers(uid);
+  const { matches, save: saveMatch } = useMatches(uid);
+  const { archives, save: saveArchive, deleteAllMatches } = useArchives(uid);
+  const { schedule, save: saveScheduleEntry, remove: removeScheduleEntry, saveAll: saveAllSchedule } = useSchedule(uid);
+  const [currentWeek, setCurrentWeek] = useSeasonWeek(uid);
 
-  useEffect(() => {
-    if (user) {
-      const pKey = `cuemaster_players_${user.id}`;
-      const mKey = `cuemaster_matches_${user.id}`;
-      const aKey = `cuemaster_archives_${user.id}`;
+  const [activeTab, setActiveTab] = useState<TabId>('dashboard');
+  const [plannerOpponent, setPlannerOpponent] = useState<string | undefined>(undefined);
 
-      const savedPlayers = localStorage.getItem(pKey);
-      const savedMatches = localStorage.getItem(mKey);
-      const savedArchives = localStorage.getItem(aKey);
-      
-      if (savedPlayers === null) {
-        const legacyPlayers = localStorage.getItem('cuemaster_players');
-        if (legacyPlayers) {
-          setPlayers(JSON.parse(legacyPlayers));
-          localStorage.setItem(pKey, legacyPlayers);
-        } else {
-          setPlayers(INITIAL_PLAYERS);
-          localStorage.setItem(pKey, JSON.stringify(INITIAL_PLAYERS));
-        }
-      } else {
-        setPlayers(JSON.parse(savedPlayers));
-      }
-
-      if (savedMatches) setMatches(JSON.parse(savedMatches));
-      if (savedArchives) setArchives(JSON.parse(savedArchives));
-    }
-  }, [user?.id]);
-
-  useEffect(() => {
-    if (user) {
-      localStorage.setItem(`cuemaster_players_${user.id}`, JSON.stringify(players));
-      localStorage.setItem(`cuemaster_matches_${user.id}`, JSON.stringify(matches));
-      localStorage.setItem(`cuemaster_archives_${user.id}`, JSON.stringify(archives));
-    }
-  }, [players, matches, archives, user?.id]);
-
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    const callsign = callsignInput.trim();
-    const password = passwordInput.trim();
-    if (!callsign || !password) return;
-
-    setIsLoading(true);
-    setError(null);
-
-    setTimeout(() => {
-      const userId = callsign.toLowerCase();
-      const authRegistryKey = 'cuemaster_auth_registry';
-      const registry = JSON.parse(localStorage.getItem(authRegistryKey) || '{}');
-
-      if (registry[userId]) {
-        if (registry[userId] !== password) {
-          setError("Access Denied: Invalid Security Key.");
-          setIsLoading(false);
-          return;
-        }
-      } else {
-        registry[userId] = password;
-        localStorage.setItem(authRegistryKey, JSON.stringify(registry));
-      }
-
-      const newUser: User = {
-        id: userId,
-        name: callsign,
-        email: `${userId}@apacoach.ai`,
-        picture: `https://api.dicebear.com/7.x/bottts/svg?seed=${callsign}`,
-      };
-      
-      setUser(newUser);
-      localStorage.setItem('cuemaster_session', JSON.stringify(newUser));
-      setIsLoading(false);
-    }, 1000);
-  };
-
-  const addPlayer = (name: string, skill8: SkillLevel, skill9: SkillLevel) => {
-    const newPlayer: Player = {
-      id: Math.random().toString(36).substr(2, 9),
-      name,
-      skillLevel8Ball: skill8,
-      skillLevel9Ball: skill9,
-      games8Ball: 0,
-      games9Ball: 0,
-      wins8Ball: 0,
-      wins9Ball: 0,
-      monthlyParticipation: 0,
-      isActive: true
+  // ── Player ops ──────────────────────────────────────────────────────────────
+  const addPlayer = useCallback((name: string, skill8: SkillLevel, skill9: SkillLevel) => {
+    const p: Player = {
+      id: Math.random().toString(36).slice(2, 11),
+      name, skillLevel8Ball: skill8, skillLevel9Ball: skill9,
+      games8Ball: 0, games9Ball: 0,
+      wins8Ball: 0, wins9Ball: 0,
+      monthlyParticipation: 0, isActive: true,
     };
-    setPlayers(prev => [...prev, newPlayer]);
-  };
+    savePlayer(p);
+  }, [savePlayer]);
 
-  const updatePlayer = (id: string, updates: Partial<Player>) => {
-    setPlayers(prev => prev.map(p => p.id === id ? { ...p, ...updates } : p));
-  };
+  const updatePlayer = useCallback((id: string, updates: Partial<Player>) => {
+    const existing = players.find(p => p.id === id);
+    if (existing) savePlayer({ ...existing, ...updates });
+  }, [players, savePlayer]);
 
-  const deletePlayer = (id: string) => {
-    setPlayers(prev => prev.filter(p => p.id !== id));
-  };
+  const deletePlayer = useCallback((id: string) => removePlayer(id), [removePlayer]);
 
-  const recordMatch = (match: Match) => {
-    setMatches(prev => [...prev, match]);
-    setPlayers(prev => prev.map(p => {
-      const playerGames = match.slots.filter(s => s.assignedPlayerId === p.id);
-      if (playerGames.length === 0) return p;
-
-      let wins8 = 0, wins9 = 0, games8 = 0, games9 = 0;
-      playerGames.forEach(g => {
-        if (g.gameType === '8-Ball') {
-          games8++;
-          if (g.result === 'Win') wins8++;
-        } else {
-          games9++;
-          if (g.result === 'Win') wins9++;
-        }
+  // ── Match ops ───────────────────────────────────────────────────────────────
+  const recordMatch = useCallback((match: Match) => {
+    saveMatch(match);
+    match.slots.forEach(slot => {
+      const player = players.find(p => p.id === slot.assignedPlayerId);
+      if (!player) return;
+      const is8 = slot.gameType === GameType.EIGHT_BALL;
+      savePlayer({
+        ...player,
+        games8Ball:   player.games8Ball   + (is8 ? 1 : 0),
+        games9Ball:   player.games9Ball   + (is8 ? 0 : 1),
+        wins8Ball:    player.wins8Ball    + (is8 && slot.result === 'Win' ? 1 : 0),
+        wins9Ball:    player.wins9Ball    + (!is8 && slot.result === 'Win' ? 1 : 0),
+        monthlyParticipation: player.monthlyParticipation + 1,
       });
+    });
+  }, [players, saveMatch, savePlayer]);
 
-      return {
-        ...p,
-        games8Ball: p.games8Ball + games8,
-        games9Ball: p.games9Ball + games9,
-        wins8Ball: p.wins8Ball + wins8,
-        wins9Ball: p.wins9Ball + wins9,
-        monthlyParticipation: p.monthlyParticipation + playerGames.length
-      };
-    }));
-  };
-
-  const archiveSession = (sessionName: string) => {
-    const newArchive: SessionArchive = {
-      id: Math.random().toString(36).substr(2, 9),
+  // ── Archive op ──────────────────────────────────────────────────────────────
+  const archiveSession = useCallback(async (sessionName: string) => {
+    const archive: SessionArchive = {
+      id: Math.random().toString(36).slice(2, 11),
       name: sessionName,
       startDate: matches.length > 0 ? matches[0].date : new Date().toISOString(),
       endDate: new Date().toISOString(),
       matches: [...matches],
-      playerSnapshots: JSON.parse(JSON.stringify(players))
+      playerSnapshots: JSON.parse(JSON.stringify(players)),
     };
-    setArchives(prev => [...prev, newArchive]);
-    setMatches([]);
-    setPlayers(prev => prev.map(p => ({
-      ...p,
-      monthlyParticipation: 0
-    })));
-  };
+    await saveArchive(archive);
+    await deleteAllMatches();
+    players.forEach(p => savePlayer({ ...p, monthlyParticipation: 0 }));
+  }, [matches, players, saveArchive, deleteAllMatches, savePlayer]);
 
-  const importAPAPlayers = (apaPlayers: APAPlayer[]): { added: number; updated: number } => {
-    let added = 0;
-    let updated = 0;
+  // ── Schedule ops ────────────────────────────────────────────────────────────
+  const planMatchFromSchedule = useCallback((opponentName: string) => {
+    setPlannerOpponent(opponentName);
+    setActiveTab('planner');
+  }, []);
 
-    setPlayers((prev) => {
-      const nameMap = new Map<string, Player>(prev.map((p) => [p.name.toLowerCase(), p]));
-      const newList = [...prev];
-
-      for (const ap of apaPlayers) {
-        const key = ap.name.toLowerCase();
-        const existing = nameMap.get(key);
-        const sl8 = Math.min(Math.max(Math.round(ap.skillLevel8Ball), 1), 7) as SkillLevel;
-        const sl9 = Math.min(Math.max(Math.round(ap.skillLevel9Ball), 1), 7) as SkillLevel;
-
-        if (existing) {
-          const idx = newList.findIndex((p) => p.id === existing.id);
-          if (idx !== -1) {
-            newList[idx] = {
-              ...newList[idx],
-              skillLevel8Ball: sl8,
-              skillLevel9Ball: sl9,
-              games8Ball: ap.games8Ball ?? newList[idx].games8Ball,
-              games9Ball: ap.games9Ball ?? newList[idx].games9Ball,
-              wins8Ball: ap.wins8Ball ?? newList[idx].wins8Ball,
-              wins9Ball: ap.wins9Ball ?? newList[idx].wins9Ball,
-            };
-            updated++;
-          }
-        } else {
-          newList.push({
-            id: Math.random().toString(36).substr(2, 9),
-            name: ap.name,
-            skillLevel8Ball: sl8,
-            skillLevel9Ball: sl9,
-            games8Ball: ap.games8Ball ?? 0,
-            games9Ball: ap.games9Ball ?? 0,
-            wins8Ball: ap.wins8Ball ?? 0,
-            wins9Ball: ap.wins9Ball ?? 0,
-            monthlyParticipation: 0,
-            isActive: true,
-          });
-          added++;
-        }
-      }
-
-      return newList;
-    });
-
-    return { added, updated };
-  };
-
-  const handleLogout = () => {
-    setUser(null);
-    setPlayers([]);
-    setMatches([]);
-    setArchives([]);
-    setPasswordInput('');
-    localStorage.removeItem('cuemaster_session');
-  };
-
-  if (!user) {
+  // ── Loading screen ──────────────────────────────────────────────────────────
+  if (authLoading) {
     return (
-      <div className="min-h-screen login-gradient flex flex-col items-center justify-center p-6 text-center">
-        <div className="mb-12">
-          <div className="w-24 h-24 bg-gradient-to-br from-indigo-500 to-violet-700 rounded-[2.5rem] flex items-center justify-center shadow-[0_0_50px_rgba(99,102,241,0.3)] mx-auto mb-8 relative">
-            <Trophy className="w-12 h-12 text-white" />
-            <div className="absolute -top-1 -right-1 w-6 h-6 bg-emerald-500 rounded-full border-4 border-[#020617] animate-pulse"></div>
-          </div>
-          <h1 className="text-6xl font-black tracking-tighter mb-4 text-white">APA <span className="text-indigo-500">Coach</span></h1>
-          <p className="text-slate-400 max-w-sm mx-auto text-lg leading-relaxed">Rule of 23 optimized. Quota enforced. Identity verified.</p>
-        </div>
-        
-        <div className="w-full max-w-md bg-slate-900/40 backdrop-blur-2xl border border-slate-800 p-10 rounded-[3rem] shadow-2xl">
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div className="text-left space-y-2">
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Captain Callsign</label>
-              <div className="relative group">
-                <Shield className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within:text-indigo-500 transition-colors" />
-                <input type="text" value={callsignInput} onChange={(e) => setCallsignInput(e.target.value)} placeholder="Tactical ID" className="w-full bg-slate-950 border border-slate-800 rounded-2xl pl-14 pr-6 py-4 text-white font-bold focus:ring-2 focus:ring-indigo-500 outline-none transition-all" required />
-              </div>
-            </div>
-            <div className="text-left space-y-2">
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Command Password</label>
-              <div className="relative group">
-                <Lock className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 group-focus-within:text-indigo-500 transition-colors" />
-                <input type={showPassword ? "text" : "password"} value={passwordInput} onChange={(e) => setPasswordInput(e.target.value)} placeholder="Security Key" className="w-full bg-slate-950 border border-slate-800 rounded-2xl pl-14 pr-14 py-4 text-white font-bold focus:ring-2 focus:ring-indigo-500 outline-none transition-all" required />
-                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors">
-                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                </button>
-              </div>
-            </div>
-            {error && <div className="flex items-center gap-2 text-rose-500 text-xs font-bold justify-center py-2 animate-bounce"><AlertCircle className="w-4 h-4" />{error}</div>}
-            <button type="submit" disabled={isLoading || !callsignInput.trim() || !passwordInput.trim()} className="w-full mt-2 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white py-4 rounded-2xl font-black flex items-center justify-center gap-3 shadow-xl shadow-indigo-500/20 transition-all active:scale-95">
-              {isLoading ? <div className="flex items-center gap-3"><div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div><span className="text-sm">Unlocking Vault...</span></div> : <><Fingerprint className="w-5 h-5" /><span>Decrypt & Connect</span><ChevronRight className="w-5 h-5" /></>}
-            </button>
-          </form>
+      <div className="min-h-screen grid-bg flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-10 h-10 animate-spin" style={{ color: '#00E5FF' }} />
+          <p className="section-label opacity-60">INITIALISING</p>
         </div>
       </div>
     );
   }
 
+  // ── Auth screen ─────────────────────────────────────────────────────────────
+  if (!user) {
+    return (
+      <AuthScreen
+        onGoogle={loginGoogle}
+        onFacebook={loginFacebook}
+        loading={false}
+        error={authError}
+      />
+    );
+  }
+
+  // ── Main app ────────────────────────────────────────────────────────────────
+  const activePlayers = players.filter(p => p.isActive);
+
   return (
-    <Layout activeTab={activeTab} setActiveTab={setActiveTab} playerCount={players.filter(p => p.isActive).length} user={user} onLogout={handleLogout}>
-      {activeTab === 'dashboard' && <Dashboard players={players.filter(p => p.isActive)} />}
-      {activeTab === 'roster' && <Roster players={players} onAddPlayer={addPlayer} onUpdatePlayer={updatePlayer} onDeletePlayer={deletePlayer} />}
-      {activeTab === 'planner' && <MatchPlanner players={players.filter(p => p.isActive)} onMatchComplete={recordMatch} user={user} />}
-      {activeTab === 'performance' && <Performance players={players} matches={matches} archives={archives} onArchiveSession={archiveSession} />}
-      {activeTab === 'apaSync' && <APASync onImportPlayers={importAPAPlayers} />}
+    <Layout
+      activeTab={activeTab}
+      setActiveTab={setActiveTab}
+      playerCount={activePlayers.length}
+      user={user}
+      onLogout={logout}
+    >
+      {activeTab === 'dashboard' && (
+        <Dashboard
+          players={activePlayers}
+          currentWeek={currentWeek}
+          onWeekChange={setCurrentWeek}
+        />
+      )}
+
+      {activeTab === 'roster' && (
+        <Roster
+          players={players}
+          onAddPlayer={addPlayer}
+          onUpdatePlayer={updatePlayer}
+          onDeletePlayer={deletePlayer}
+        />
+      )}
+
+      {activeTab === 'schedule' && (
+        <ScheduleView
+          schedule={schedule}
+          onSaveEntry={saveScheduleEntry}
+          onDeleteEntry={removeScheduleEntry}
+          onSaveAll={saveAllSchedule}
+          onPlanMatch={planMatchFromSchedule}
+        />
+      )}
+
+      {activeTab === 'planner' && (
+        <MatchPlanner
+          players={activePlayers}
+          onMatchComplete={recordMatch}
+          userId={user.uid}
+          opponentFromSchedule={plannerOpponent}
+        />
+      )}
+
+      {activeTab === 'history' && (
+        <Performance
+          players={players}
+          matches={matches}
+          archives={archives}
+          onArchiveSession={archiveSession}
+        />
+      )}
     </Layout>
   );
 };

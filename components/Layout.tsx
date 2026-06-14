@@ -1,191 +1,192 @@
 
 import React, { useState } from 'react';
-import { LayoutDashboard, Users, CalendarDays, Trophy, LogOut, Lock, BarChart3, BookOpen, Menu, X as CloseIcon, Globe } from 'lucide-react';
-import { User } from '../types';
+import {
+  LayoutDashboard, Users, CalendarDays, BarChart3,
+  LogOut, Menu, X, Cpu,
+} from 'lucide-react';
+import { AppUser } from '../types';
 
-type ActiveTab = 'dashboard' | 'roster' | 'planner' | 'performance' | 'apaSync';
+export type TabId = 'dashboard' | 'roster' | 'schedule' | 'planner' | 'history';
 
 interface LayoutProps {
-  children: React.ReactNode;
-  activeTab: ActiveTab;
-  setActiveTab: (tab: ActiveTab) => void;
-  playerCount: number;
-  user: User;
-  onLogout: () => void;
+  children:     React.ReactNode;
+  activeTab:    TabId;
+  setActiveTab: (t: TabId) => void;
+  playerCount:  number;
+  user:         AppUser;
+  onLogout:     () => void;
 }
 
-export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, playerCount, user, onLogout }) => {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+const NAV: { id: TabId; label: string; icon: React.ElementType; accent?: string }[] = [
+  { id: 'dashboard', label: 'Command Board',   icon: LayoutDashboard },
+  { id: 'roster',    label: 'Team Roster',      icon: Users           },
+  { id: 'schedule',  label: 'Schedule',         icon: CalendarDays    },
+  { id: 'planner',   label: 'Match Planner',    icon: Cpu             },
+  { id: 'history',   label: 'Tactical History', icon: BarChart3       },
+];
 
-  const navItems: { id: ActiveTab; label: string; icon: React.ElementType }[] = [
-    { id: 'dashboard', label: 'Command Board', icon: LayoutDashboard },
-    { id: 'roster', label: 'Team Roster', icon: Users },
-    { id: 'planner', label: 'Match Planner', icon: CalendarDays },
-    { id: 'performance', label: 'Tactical History', icon: BarChart3 },
-    { id: 'apaSync', label: 'APA Sync', icon: Globe },
-  ];
+export const Layout: React.FC<LayoutProps> = ({
+  children, activeTab, setActiveTab, playerCount, user, onLogout,
+}) => {
+  const [open, setOpen] = useState(false);
 
-  const handleNavClick = (tab: ActiveTab) => {
-    setActiveTab(tab);
-    setIsMenuOpen(false);
-  };
+  const go = (id: TabId) => { setActiveTab(id); setOpen(false); };
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-[#020617] text-slate-200">
-      {/* Mobile Header */}
-      <header className="md:hidden flex items-center justify-between p-4 bg-slate-900 border-b border-slate-800 sticky top-0 z-40 shadow-xl">
-        <div className="flex items-center gap-2">
-          <div className="p-1.5 bg-indigo-600 rounded-lg">
-            <Trophy className="w-5 h-5 text-white" />
-          </div>
-          <h1 className="text-lg font-black tracking-tighter text-white">APA <span className="text-indigo-400">Coach</span></h1>
-        </div>
-        <button 
-          onClick={() => setIsMenuOpen(true)}
-          className="p-2 text-slate-400 hover:text-white bg-slate-800 rounded-xl"
-        >
+    <div className="min-h-screen flex flex-col md:flex-row">
+      {/* ── Mobile top bar ───────────────────────────────────────── */}
+      <header
+        className="md:hidden flex items-center justify-between px-5 py-3 sticky top-0 z-40"
+        style={{ background: 'rgba(0,0,8,0.95)', borderBottom: '1px solid rgba(0,229,255,0.12)' }}
+      >
+        <LogoMark />
+        <button onClick={() => setOpen(true)}
+          className="p-2 rounded" style={{ color: '#00E5FF' }}>
           <Menu className="w-6 h-6" />
         </button>
       </header>
 
-      {/* Backdrop for mobile */}
-      {isMenuOpen && (
-        <div 
-          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 md:hidden"
-          onClick={() => setIsMenuOpen(false)}
+      {/* ── Mobile backdrop ───────────────────────────────────────── */}
+      {open && (
+        <div
+          className="fixed inset-0 z-50 md:hidden"
+          style={{ background: 'rgba(0,0,8,0.85)', backdropFilter: 'blur(8px)' }}
+          onClick={() => setOpen(false)}
         />
       )}
 
-      {/* Sidebar / Navigation Drawer */}
-      <nav className={`
-        fixed md:sticky top-0 left-0 z-[60] h-screen
-        w-72 bg-slate-900 border-r border-slate-800 p-6 
-        flex flex-col gap-6 shadow-2xl transition-transform duration-300 ease-in-out
-        ${isMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
-        overflow-y-auto shrink-0
-      `}>
-        <div className="flex items-center justify-between mb-2 shrink-0">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-indigo-600 rounded-xl shadow-lg shadow-indigo-500/20">
-              <Trophy className="w-6 h-6 text-white" />
-            </div>
-            <h1 className="text-xl font-black tracking-tighter text-white">APA <span className="text-indigo-400">Coach</span></h1>
-          </div>
-          <button 
-            onClick={() => setIsMenuOpen(false)}
-            className="md:hidden p-2 text-slate-500 hover:text-white"
-          >
-            <CloseIcon className="w-6 h-6" />
+      {/* ── Sidebar ───────────────────────────────────────────────── */}
+      <nav
+        className={`
+          fixed md:sticky top-0 left-0 z-[60] h-screen w-72
+          flex flex-col transition-transform duration-300
+          ${open ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+        `}
+        style={{
+          background: 'rgba(0,2,14,0.97)',
+          borderRight: '1px solid rgba(0,229,255,0.1)',
+        }}
+      >
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 py-5 shrink-0"
+          style={{ borderBottom: '1px solid rgba(0,229,255,0.08)' }}>
+          <LogoMark />
+          <button onClick={() => setOpen(false)}
+            className="md:hidden" style={{ color: 'rgba(0,229,255,0.5)' }}>
+            <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Identity Profile */}
-        <div className="relative group shrink-0">
-          <div className="flex items-center gap-3 p-3 bg-slate-950/50 rounded-2xl border border-slate-800 group-hover:border-indigo-500/30 transition-all duration-300">
-            <div className="w-10 h-10 rounded-full border-2 border-indigo-500/20 bg-slate-800 flex items-center justify-center font-black text-indigo-400 overflow-hidden shrink-0 relative">
-               {user.picture ? (
-                 <img src={user.picture} alt="" className="w-full h-full object-cover" />
-               ) : (
-                 user.name.charAt(0).toUpperCase()
-               )}
-               <div className="absolute bottom-0 right-0 bg-emerald-500 w-3 h-3 rounded-full border-2 border-slate-900"></div>
+        {/* User card */}
+        <div className="px-4 py-4 shrink-0" style={{ borderBottom: '1px solid rgba(0,229,255,0.06)' }}>
+          <div className="flex items-center gap-3 px-3 py-3 rounded"
+            style={{ background: 'rgba(0,229,255,0.04)', border: '1px solid rgba(0,229,255,0.1)' }}>
+            <div className="relative shrink-0">
+              <img
+                src={user.photoURL}
+                alt=""
+                className="w-9 h-9 rounded"
+                onError={e => { (e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/bottts/svg?seed=${user.uid}`; }}
+              />
+              <div
+                className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full"
+                style={{ background: '#00FF88', boxShadow: '0 0 6px #00FF88' }}
+              />
             </div>
-            <div className="overflow-hidden">
-              <div className="flex items-center gap-1.5">
-                <p className="text-xs font-black truncate text-slate-100">{user.name}</p>
-                <Lock className="w-2.5 h-2.5 text-indigo-400 shrink-0" />
-              </div>
-              <p className="text-[10px] text-slate-500 font-bold tracking-tight truncate uppercase">{user.id}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-1.5 shrink-0">
-          {navItems.map((item) => (
-            <button 
-              key={item.id}
-              onClick={() => handleNavClick(item.id)}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
-                activeTab === item.id ? 'bg-indigo-600/10 text-indigo-400 border border-indigo-500/20 shadow-lg' : 'text-slate-400 hover:bg-slate-800 hover:text-white'
-              }`}
-            >
-              <item.icon className="w-5 h-5" />
-              <span className="font-bold text-sm tracking-tight">{item.label}</span>
-            </button>
-          ))}
-        </div>
-
-        {/* Command Briefing (Help Section) */}
-        <div className="bg-slate-950/40 border border-slate-800/60 rounded-2xl p-4 mt-2 space-y-4">
-          <div className="flex items-center gap-2 mb-1">
-            <BookOpen className="w-3.5 h-3.5 text-indigo-500" />
-            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Command Manual</p>
-          </div>
-          
-          <div className="space-y-3">
-            <div className="group">
-              <p className="text-[9px] font-bold text-indigo-400 uppercase tracking-tight mb-0.5">Command Board</p>
-              <p className="text-[10px] text-slate-500 leading-relaxed italic">Monitor squad readiness and playoff eligibility status.</p>
-            </div>
-            
-            <div className="group">
-              <p className="text-[9px] font-bold text-indigo-400 uppercase tracking-tight mb-0.5">Team Roster</p>
-              <p className="text-[10px] text-slate-500 leading-relaxed italic">Manage personnel files, update skill levels, and archive players.</p>
-            </div>
-            
-            <div className="group">
-              <p className="text-[9px] font-bold text-indigo-400 uppercase tracking-tight mb-0.5">Match Planner</p>
-              <p className="text-[10px] text-slate-500 leading-relaxed italic">Optimize lineups under the Rule of 23 and log live results.</p>
-            </div>
-            
-            <div className="group p-2 rounded-lg bg-indigo-500/5 border border-indigo-500/20 ring-1 ring-indigo-500/20 shadow-[0_0_15px_rgba(99,102,241,0.1)]">
-              <p className="text-[9px] font-bold text-indigo-400 uppercase tracking-tight mb-0.5">Tactical History</p>
-              <p className="text-[10px] text-slate-400 leading-relaxed italic">Analyze seasonal trends and manage mission archives.</p>
-              <div className="mt-1.5 flex items-start gap-1.5">
-                <div className="w-1 h-1 rounded-full bg-rose-500 mt-1 shrink-0"></div>
-                <p className="text-[9px] font-black text-rose-400 uppercase leading-tight">
-                  New Season: Select 'End Session' here to archive data and reset current stats.
-                </p>
-              </div>
-            </div>
-
-            <div className="group">
-              <p className="text-[9px] font-bold text-indigo-400 uppercase tracking-tight mb-0.5">APA Sync</p>
-              <p className="text-[10px] text-slate-500 leading-relaxed italic">Login to poolplayers.com to import your official roster and stats.</p>
+            <div className="min-w-0">
+              <p className="text-xs font-bold text-white truncate">{user.displayName}</p>
+              <p className="font-mono text-[9px] truncate" style={{ color: 'rgba(0,229,255,0.5)' }}>
+                {user.provider.toUpperCase()} · {user.email.split('@')[0]}
+              </p>
             </div>
           </div>
         </div>
 
-        <div className="mt-auto flex flex-col gap-6 shrink-0">
-          <div className="pt-6 border-t border-slate-800">
-            <div className="flex justify-between items-center mb-3">
-              <p className="text-[10px] text-slate-500 font-black tracking-widest uppercase">Team Strength</p>
-              <span className="text-[10px] font-black text-indigo-400">{playerCount}/8</span>
+        {/* Nav items */}
+        <div className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+          {NAV.map(item => {
+            const active = activeTab === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => go(item.id)}
+                className={`nav-item w-full flex items-center gap-3 px-4 py-3 rounded text-left text-sm font-bold ${active ? 'active' : ''}`}
+                style={{ fontFamily: active ? 'Orbitron, sans-serif' : 'Inter, sans-serif', fontSize: '12px', letterSpacing: active ? '.06em' : undefined }}
+              >
+                <item.icon className="w-4 h-4 shrink-0" />
+                {item.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Footer */}
+        <div className="px-4 pb-6 shrink-0 space-y-4" style={{ borderTop: '1px solid rgba(0,229,255,0.06)' }}>
+          {/* Squad strength */}
+          <div className="pt-4 px-2">
+            <div className="flex justify-between items-center mb-2">
+              <span className="section-label opacity-60">Squad Strength</span>
+              <span className="font-mono text-xs" style={{ color: '#00E5FF' }}>
+                {playerCount}<span style={{ color: 'rgba(208,232,255,0.3)' }}>/8</span>
+              </span>
             </div>
-            <div className="w-full bg-slate-800 rounded-full h-1.5 overflow-hidden">
-              <div 
-                className={`h-1.5 rounded-full transition-all duration-1000 ${playerCount >= 8 ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.3)]' : 'bg-indigo-500'}`} 
-                style={{ width: `${Math.min((playerCount / 8) * 100, 100)}%` }}
-              ></div>
+            <div className="h-px w-full" style={{ background: 'rgba(0,229,255,0.1)' }}>
+              <div
+                className="h-px transition-all duration-700"
+                style={{
+                  width: `${Math.min((playerCount / 8) * 100, 100)}%`,
+                  background: playerCount >= 8 ? '#00FF88' : '#00E5FF',
+                  boxShadow: playerCount >= 8 ? '0 0 8px #00FF88' : '0 0 8px #00E5FF',
+                }}
+              />
             </div>
           </div>
 
-          <button 
+          <button
             onClick={onLogout}
-            className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-500 hover:text-rose-400 hover:bg-rose-500/10 transition-all group"
+            className="w-full flex items-center gap-3 px-4 py-3 rounded text-sm font-bold transition-all group"
+            style={{ color: 'rgba(255,0,102,0.6)', letterSpacing: '.06em', fontFamily: 'Orbitron, sans-serif', fontSize: '11px' }}
+            onMouseEnter={e => (e.currentTarget.style.color = '#FF0066')}
+            onMouseLeave={e => (e.currentTarget.style.color = 'rgba(255,0,102,0.6)')}
           >
-            <LogOut className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-            <span className="font-bold text-xs uppercase tracking-widest">Terminate Session</span>
+            <LogOut className="w-4 h-4 transition-transform group-hover:-translate-x-0.5" />
+            DISCONNECT
           </button>
         </div>
       </nav>
 
-      {/* Main Content */}
-      <main className="flex-1 p-4 md:p-8 overflow-y-auto">
-        <div className="max-w-6xl mx-auto">
+      {/* ── Main content ──────────────────────────────────────────── */}
+      <main className="flex-1 overflow-y-auto">
+        <div className="max-w-6xl mx-auto px-4 md:px-8 py-6 md:py-8">
           {children}
         </div>
       </main>
     </div>
   );
 };
+
+const LogoMark = () => (
+  <div className="flex items-center gap-2.5">
+    <div
+      className="w-8 h-8 flex items-center justify-center rounded"
+      style={{ background: 'rgba(0,229,255,0.1)', border: '1px solid rgba(0,229,255,0.4)', boxShadow: '0 0 12px rgba(0,229,255,0.2)' }}
+    >
+      <svg viewBox="0 0 20 20" className="w-4 h-4" fill="none">
+        <circle cx="10" cy="6"  r="2.2" fill="#00E5FF" opacity=".95" />
+        <circle cx="7"  cy="11" r="2.2" fill="#00E5FF" opacity=".75" />
+        <circle cx="13" cy="11" r="2.2" fill="#00E5FF" opacity=".75" />
+        <circle cx="4"  cy="16" r="2.2" fill="#00E5FF" opacity=".5"  />
+        <circle cx="10" cy="16" r="2.2" fill="#FFB700" opacity=".95" />
+        <circle cx="16" cy="16" r="2.2" fill="#00E5FF" opacity=".5"  />
+      </svg>
+    </div>
+    <div>
+      <span className="font-orbitron font-black text-base tracking-widest" style={{ color: '#00E5FF', textShadow: '0 0 12px rgba(0,229,255,0.6)' }}>
+        APA
+      </span>
+      <span className="font-orbitron font-bold text-base tracking-widest text-white ml-1">
+        COACH
+      </span>
+    </div>
+  </div>
+);
