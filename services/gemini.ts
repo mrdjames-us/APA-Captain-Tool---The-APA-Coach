@@ -1,57 +1,77 @@
-
 import { GoogleGenAI, Type } from "@google/genai";
 import { Player, SkillLevel } from "../types";
 
 const getAI = () => new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-// ── Lineup suggestion ─────────────────────────────────────────────────────────
+// ── Lineup suggestion (pure JS — no API key needed) ───────────────────────────
 export const suggestLineup = async (
   players: Player[],
   opponentSkills: SkillLevel[],
   currentAssignments: (string | null)[]
-) => {
-  const ai = getAI();
-
-  const prompt = `
-You are a professional APA pool team captain optimizing a 10-game lineup.
-Matches 1-5 are 8-Ball. Matches 6-10 are 9-Ball.
-
-TEAM ROSTER:
-${players.map(p => `- ID:${p.id} Name:${p.name} 8B-SL:${p.skillLevel8Ball} 9B-SL:${p.skillLevel9Ball} 8B-Games:${p.games8Ball} 9B-Games:${p.games9Ball} Wins:${p.wins8Ball + p.wins9Ball}`).join('\n')}
-
-CURRENT ASSIGNMENTS (locked — do not change):
-${currentAssignments.map((id, i) => `Match ${i + 1}: ${id ? `LOCKED: ${id}` : 'OPEN'}`).join('\n')}
-
-OPPONENT SKILL LEVELS:
-${opponentSkills.map((s, i) => `Match ${i + 1}: SL ${s}`).join(', ')}
-
-CONSTRAINTS:
-1. Rule of 23: 8-Ball slot sum ≤ 23, 9-Ball slot sum ≤ 23.
-2. Prioritize players with < 4 games in the format (qualification need).
-3. Then maximize win rate.
-4. A player may appear at most once per format (1-5 and 6-10 are separate).
-5. Return the same ID for locked slots.
-  `.trim();
-
+): Promise<{ assignments: string[] } | null> => {
   try {
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: prompt,
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            assignments: { type: Type.ARRAY, items: { type: Type.STRING } },
-            reasoning:   { type: Type.STRING },
-          },
-          required: ["assignments"],
-        },
-      },
-    });
-    return JSON.parse(response.text || 'null');
-  } catch (e) {
-    console.error("Gemini lineup error:", e);
+    const assignments = [...currentAssignments];
+
+    const assigned8Ball = new Set(assignments.slice(0, 5).filter(Boolean) as string[]);
+    const assigned9Ball = new Set(assignments.slice(5, 10).filter(Boolean) as string[]);
+
+    const currentSkill8 = assignments.slice(0, 5).reduce((sum, id) => {
+      if (!id) return sum;
+      const p = players.find(pl => pl.id === id);
+      return sum + (p?.skillLevel8Ball || 0);
+    }, 0);
+
+    const currentSkill9 = assignments.slice(5, 10).reduce((sum, id) => {
+      if (!id) return sum;
+      const p = players.find(pl => pl.id === id);
+      return sum + (p?.skillLevel9Ball || 0);
+    }, 0);
+
+    const sortPlayers = (format: '8ball' | '9ball') => {
+      return [...players].sort((a, b) => {
+        const aGames = format === '8ball' ? a.games8Ball : a.games9Ball;
+        const bGames = format === '8ball' ? b.games8Ball : b.games9Ball;
+        const aWins = format === '8ball' ? a.wins8Ball : a.wins9Ball;
+        const bWins = format === '8ball' ? b.wins8Ball : b.wins9Ball;
+        const aNeedsQual = aGames < 4;
+        const bNeedsQual = bGames < 4;
+        if (aNeedsQual && !bNeedsQual) return -1;
+        if (!aNeedsQual && bNeedsQual) return 1;
+        return bWins - aWins;
+      });
+    };
+
+    const sorted8 = sortPlayers('8ball');
+    let remaining8 = 23 - currentSkill8;
+    for (let i = 0; i < 5; i++) {
+      if (assignments[i]) continue;
+      for (const player of sorted8) {
+        if (assigned8Ball.has(player.id)) continue;
+        if (player.skillLevel8Ball > remaining8) continue;
+        assignments[i] = player.id;
+        assigned8Ball.add(player.id);
+        remaining8 -= player.skillLevel8Ball;
+        break;
+      }
+    }
+
+    const sorted9 = sortPlayers('9ball');
+    let remaining9 = 23 - currentSkill9;
+    for (let i = 5; i < 10; i++) {
+      if (assignments[i]) continue;
+      for (const player of sorted9) {
+        if (assigned9Ball.has(player.id)) continue;
+        if (player.skillLevel9Ball > remaining9) continue;
+        assignments[i] = player.id;
+        assigned9Ball.add(player.id);
+        remaining9 -= player.skillLevel9Ball;
+        break;
+      }
+    }
+
+    return { assignments: assignments.map(a => a || '') };
+  } catch (error) {
+    console.error("Lineup suggestion error:", error);
     return null;
   }
 };
