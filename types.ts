@@ -51,3 +51,20 @@ export interface SessionArchive {
   matches: Match[];
   playerSnapshots: Player[];
 }
+
+export interface APATeamInfo {
+  teamName: string;
+  division: string;
+  season: string;
+}
+
+export interface APAPlayer {
+  name: string;
+  memberId: string;
+  skillLevel8Ball: number;
+  skillLevel9Ball: number;
+  games8Ball?: number;
+  wins8Ball?: number;
+  games9Ball?: number;
+  wins9Ball?: number;
+}

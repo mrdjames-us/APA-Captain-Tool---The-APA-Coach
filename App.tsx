@@ -5,7 +5,8 @@ import { Dashboard } from './components/Dashboard';
 import { Roster } from './components/Roster';
 import { MatchPlanner } from './components/MatchPlanner';
 import { Performance } from './components/Performance';
-import { Player, SkillLevel, User, Match, SessionArchive } from './types';
+import { APASync } from './components/APASync';
+import { Player, SkillLevel, User, Match, SessionArchive, APAPlayer } from './types';
 import { Trophy, Shield, ChevronRight, Fingerprint, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
 
 const INITIAL_PLAYERS: Player[] = [];
@@ -19,7 +20,7 @@ const App: React.FC = () => {
   const [players, setPlayers] = useState<Player[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
   const [archives, setArchives] = useState<SessionArchive[]>([]);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'roster' | 'planner' | 'performance'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'roster' | 'planner' | 'performance' | 'apaSync'>('dashboard');
   
   const [callsignInput, setCallsignInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
@@ -170,6 +171,57 @@ const App: React.FC = () => {
     })));
   };
 
+  const importAPAPlayers = (apaPlayers: APAPlayer[]): { added: number; updated: number } => {
+    let added = 0;
+    let updated = 0;
+
+    setPlayers((prev) => {
+      const nameMap = new Map<string, Player>(prev.map((p) => [p.name.toLowerCase(), p]));
+      const newList = [...prev];
+
+      for (const ap of apaPlayers) {
+        const key = ap.name.toLowerCase();
+        const existing = nameMap.get(key);
+        const sl8 = Math.min(Math.max(Math.round(ap.skillLevel8Ball), 1), 7) as SkillLevel;
+        const sl9 = Math.min(Math.max(Math.round(ap.skillLevel9Ball), 1), 7) as SkillLevel;
+
+        if (existing) {
+          const idx = newList.findIndex((p) => p.id === existing.id);
+          if (idx !== -1) {
+            newList[idx] = {
+              ...newList[idx],
+              skillLevel8Ball: sl8,
+              skillLevel9Ball: sl9,
+              games8Ball: ap.games8Ball ?? newList[idx].games8Ball,
+              games9Ball: ap.games9Ball ?? newList[idx].games9Ball,
+              wins8Ball: ap.wins8Ball ?? newList[idx].wins8Ball,
+              wins9Ball: ap.wins9Ball ?? newList[idx].wins9Ball,
+            };
+            updated++;
+          }
+        } else {
+          newList.push({
+            id: Math.random().toString(36).substr(2, 9),
+            name: ap.name,
+            skillLevel8Ball: sl8,
+            skillLevel9Ball: sl9,
+            games8Ball: ap.games8Ball ?? 0,
+            games9Ball: ap.games9Ball ?? 0,
+            wins8Ball: ap.wins8Ball ?? 0,
+            wins9Ball: ap.wins9Ball ?? 0,
+            monthlyParticipation: 0,
+            isActive: true,
+          });
+          added++;
+        }
+      }
+
+      return newList;
+    });
+
+    return { added, updated };
+  };
+
   const handleLogout = () => {
     setUser(null);
     setPlayers([]);
@@ -226,6 +278,7 @@ const App: React.FC = () => {
       {activeTab === 'roster' && <Roster players={players} onAddPlayer={addPlayer} onUpdatePlayer={updatePlayer} onDeletePlayer={deletePlayer} />}
       {activeTab === 'planner' && <MatchPlanner players={players.filter(p => p.isActive)} onMatchComplete={recordMatch} user={user} />}
       {activeTab === 'performance' && <Performance players={players} matches={matches} archives={archives} onArchiveSession={archiveSession} />}
+      {activeTab === 'apaSync' && <APASync onImportPlayers={importAPAPlayers} />}
     </Layout>
   );
 };

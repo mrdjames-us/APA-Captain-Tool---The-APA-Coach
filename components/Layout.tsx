@@ -1,12 +1,14 @@
 
 import React, { useState } from 'react';
-import { LayoutDashboard, Users, CalendarDays, Trophy, LogOut, Lock, BarChart3, BookOpen, Menu, X as CloseIcon } from 'lucide-react';
+import { LayoutDashboard, Users, CalendarDays, Trophy, LogOut, Lock, BarChart3, BookOpen, Menu, X as CloseIcon, Globe } from 'lucide-react';
 import { User } from '../types';
+
+type ActiveTab = 'dashboard' | 'roster' | 'planner' | 'performance' | 'apaSync';
 
 interface LayoutProps {
   children: React.ReactNode;
-  activeTab: 'dashboard' | 'roster' | 'planner' | 'performance';
-  setActiveTab: (tab: 'dashboard' | 'roster' | 'planner' | 'performance') => void;
+  activeTab: ActiveTab;
+  setActiveTab: (tab: ActiveTab) => void;
   playerCount: number;
   user: User;
   onLogout: () => void;
@@ -15,14 +17,15 @@ interface LayoutProps {
 export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTab, playerCount, user, onLogout }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  const navItems = [
+  const navItems: { id: ActiveTab; label: string; icon: React.ElementType }[] = [
     { id: 'dashboard', label: 'Command Board', icon: LayoutDashboard },
     { id: 'roster', label: 'Team Roster', icon: Users },
     { id: 'planner', label: 'Match Planner', icon: CalendarDays },
     { id: 'performance', label: 'Tactical History', icon: BarChart3 },
-  ] as const;
+    { id: 'apaSync', label: 'APA Sync', icon: Globe },
+  ];
 
-  const handleNavClick = (tab: typeof activeTab) => {
+  const handleNavClick = (tab: ActiveTab) => {
     setActiveTab(tab);
     setIsMenuOpen(false);
   };
@@ -144,6 +147,11 @@ export const Layout: React.FC<LayoutProps> = ({ children, activeTab, setActiveTa
                   New Season: Select 'End Session' here to archive data and reset current stats.
                 </p>
               </div>
+            </div>
+
+            <div className="group">
+              <p className="text-[9px] font-bold text-indigo-400 uppercase tracking-tight mb-0.5">APA Sync</p>
+              <p className="text-[10px] text-slate-500 leading-relaxed italic">Login to poolplayers.com to import your official roster and stats.</p>
             </div>
           </div>
         </div>
