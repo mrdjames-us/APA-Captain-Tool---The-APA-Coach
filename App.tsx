@@ -1,5 +1,6 @@
 
 import React, { useState, useCallback } from 'react';
+import { Routes, Route, useNavigate } from 'react-router-dom';
 import { Layout, TabId } from './components/Layout';
 import { AuthScreen } from './components/AuthScreen';
 import { Dashboard } from './components/Dashboard';
@@ -7,14 +8,28 @@ import { Roster } from './components/Roster';
 import { MatchPlanner } from './components/MatchPlanner';
 import { Performance } from './components/Performance';
 import { ScheduleView } from './components/ScheduleView';
+import { MissionControl } from './components/MissionControl';
 
 import { useAuth } from './hooks/useAuth';
 import { usePlayers, useMatches, useArchives, useSchedule, useSeasonWeek } from './hooks/useFirestore';
 
-import { Player, SkillLevel, Match, GameType, SessionArchive, ScheduleEntry } from './types';
+import { Player, SkillLevel, Match, GameType, SessionArchive } from './types';
 import { Loader2 } from 'lucide-react';
 
-const App: React.FC = () => {
+// ── Public /mission-control route (no auth required) ────────────────────────
+const MissionControlPage: React.FC = () => {
+  const navigate = useNavigate();
+  return (
+    <MissionControl
+      onBack={() => navigate('/')}
+      onSignIn={() => navigate('/')}
+    />
+  );
+};
+
+// ── Main app (auth-gated) ────────────────────────────────────────────────────
+const MainApp: React.FC = () => {
+  const navigate = useNavigate();
   const { user, loading: authLoading, error: authError, loginGoogle, loginFacebook, logout } = useAuth();
   const uid = user?.uid ?? null;
 
@@ -24,10 +39,10 @@ const App: React.FC = () => {
   const { schedule, save: saveScheduleEntry, remove: removeScheduleEntry, saveAll: saveAllSchedule } = useSchedule(uid);
   const [currentWeek, setCurrentWeek] = useSeasonWeek(uid);
 
-  const [activeTab, setActiveTab] = useState<TabId>('dashboard');
+  const [activeTab, setActiveTab]       = useState<TabId>('dashboard');
   const [plannerOpponent, setPlannerOpponent] = useState<string | undefined>(undefined);
 
-  // ── Player ops ──────────────────────────────────────────────────────────────
+  // ── Player ops ─────────────────────────────────────────────────────────────
   const addPlayer = useCallback((name: string, skill8: SkillLevel, skill9: SkillLevel) => {
     const p: Player = {
       id: Math.random().toString(36).slice(2, 11),
@@ -46,7 +61,7 @@ const App: React.FC = () => {
 
   const deletePlayer = useCallback((id: string) => removePlayer(id), [removePlayer]);
 
-  // ── Match ops ───────────────────────────────────────────────────────────────
+  // ── Match ops ──────────────────────────────────────────────────────────────
   const recordMatch = useCallback((match: Match) => {
     saveMatch(match);
     match.slots.forEach(slot => {
@@ -55,16 +70,16 @@ const App: React.FC = () => {
       const is8 = slot.gameType === GameType.EIGHT_BALL;
       savePlayer({
         ...player,
-        games8Ball:   player.games8Ball   + (is8 ? 1 : 0),
-        games9Ball:   player.games9Ball   + (is8 ? 0 : 1),
-        wins8Ball:    player.wins8Ball    + (is8 && slot.result === 'Win' ? 1 : 0),
-        wins9Ball:    player.wins9Ball    + (!is8 && slot.result === 'Win' ? 1 : 0),
+        games8Ball:  player.games8Ball  + (is8 ? 1 : 0),
+        games9Ball:  player.games9Ball  + (is8 ? 0 : 1),
+        wins8Ball:   player.wins8Ball   + (is8 && slot.result === 'Win' ? 1 : 0),
+        wins9Ball:   player.wins9Ball   + (!is8 && slot.result === 'Win' ? 1 : 0),
         monthlyParticipation: player.monthlyParticipation + 1,
       });
     });
   }, [players, saveMatch, savePlayer]);
 
-  // ── Archive op ──────────────────────────────────────────────────────────────
+  // ── Archive op ─────────────────────────────────────────────────────────────
   const archiveSession = useCallback(async (sessionName: string) => {
     const archive: SessionArchive = {
       id: Math.random().toString(36).slice(2, 11),
@@ -79,25 +94,25 @@ const App: React.FC = () => {
     players.forEach(p => savePlayer({ ...p, monthlyParticipation: 0 }));
   }, [matches, players, saveArchive, deleteAllMatches, savePlayer]);
 
-  // ── Schedule ops ────────────────────────────────────────────────────────────
+  // ── Schedule ops ───────────────────────────────────────────────────────────
   const planMatchFromSchedule = useCallback((opponentName: string) => {
     setPlannerOpponent(opponentName);
     setActiveTab('planner');
   }, []);
 
-  // ── Loading screen ──────────────────────────────────────────────────────────
+  // ── Loading ────────────────────────────────────────────────────────────────
   if (authLoading) {
     return (
       <div className="min-h-screen grid-bg flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="w-10 h-10 animate-spin" style={{ color: '#00E5FF' }} />
+          <Loader2 className="w-10 h-10 animate-spin" style={{ color: '#00B4D8' }} />
           <p className="section-label opacity-60">INITIALISING</p>
         </div>
       </div>
     );
   }
 
-  // ── Auth screen ─────────────────────────────────────────────────────────────
+  // ── Auth ───────────────────────────────────────────────────────────────────
   if (!user) {
     return (
       <AuthScreen
@@ -105,11 +120,12 @@ const App: React.FC = () => {
         onFacebook={loginFacebook}
         loading={false}
         error={authError}
+        onPlayGame={() => navigate('/mission-control')}
       />
     );
   }
 
-  // ── Main app ────────────────────────────────────────────────────────────────
+  // ── Main app ───────────────────────────────────────────────────────────────
   const activePlayers = players.filter(p => p.isActive);
 
   return (
@@ -164,8 +180,20 @@ const App: React.FC = () => {
           onArchiveSession={archiveSession}
         />
       )}
+
+      {activeTab === 'game' && (
+        <MissionControl />
+      )}
     </Layout>
   );
 };
+
+// ── Router root ───────────────────────────────────────────────────────────────
+const App: React.FC = () => (
+  <Routes>
+    <Route path="/mission-control" element={<MissionControlPage />} />
+    <Route path="/*" element={<MainApp />} />
+  </Routes>
+);
 
 export default App;
