@@ -7,6 +7,7 @@ import { Roster } from './components/Roster';
 import { MatchPlanner } from './components/MatchPlanner';
 import { Performance } from './components/Performance';
 import { ScheduleView } from './components/ScheduleView';
+import { MissionControl } from './components/MissionControl';
 
 import { useAuth } from './hooks/useAuth';
 import { usePlayers, useMatches, useArchives, useSchedule, useSeasonWeek } from './hooks/useFirestore';
@@ -26,6 +27,7 @@ const App: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState<TabId>('dashboard');
   const [plannerOpponent, setPlannerOpponent] = useState<string | undefined>(undefined);
+  const [showPublicGame, setShowPublicGame] = useState(false);
 
   // ── Player ops ──────────────────────────────────────────────────────────────
   const addPlayer = useCallback((name: string, skill8: SkillLevel, skill9: SkillLevel) => {
@@ -97,6 +99,16 @@ const App: React.FC = () => {
     );
   }
 
+  // ── Public game (no auth required) ─────────────────────────────────────────
+  if (!user && showPublicGame) {
+    return (
+      <MissionControl
+        onBack={() => setShowPublicGame(false)}
+        onSignIn={loginGoogle}
+      />
+    );
+  }
+
   // ── Auth screen ─────────────────────────────────────────────────────────────
   if (!user) {
     return (
@@ -105,6 +117,7 @@ const App: React.FC = () => {
         onFacebook={loginFacebook}
         loading={false}
         error={authError}
+        onPlayGame={() => setShowPublicGame(true)}
       />
     );
   }
@@ -163,6 +176,10 @@ const App: React.FC = () => {
           archives={archives}
           onArchiveSession={archiveSession}
         />
+      )}
+
+      {activeTab === 'game' && (
+        <MissionControl />
       )}
     </Layout>
   );

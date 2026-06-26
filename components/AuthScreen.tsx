@@ -1,15 +1,16 @@
 
 import React from 'react';
-import { Loader2, AlertCircle } from 'lucide-react';
+import { Loader2, AlertCircle, Gamepad2 } from 'lucide-react';
 
 interface AuthScreenProps {
-  onGoogle:   () => void;
-  onFacebook: () => void;
-  loading:    boolean;
-  error:      string | null;
+  onGoogle:    () => void;
+  onFacebook:  () => void;
+  loading:     boolean;
+  error:       string | null;
+  onPlayGame?: () => void;
 }
 
-export const AuthScreen: React.FC<AuthScreenProps> = ({ onGoogle, onFacebook, loading, error }) => (
+export const AuthScreen: React.FC<AuthScreenProps> = ({ onGoogle, onFacebook, loading, error, onPlayGame }) => (
   <div className="min-h-screen grid-bg flex flex-col items-center justify-center p-6 relative overflow-hidden">
     {/* Radial spotlight */}
     <div
@@ -108,6 +109,27 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onGoogle, onFacebook, lo
           Sign in with Facebook
         </button>
       </div>
+
+      {onPlayGame && (
+        <button
+          onClick={onPlayGame}
+          className="w-full py-3 rounded flex items-center justify-center gap-2 font-orbitron text-sm font-bold tracking-widest uppercase transition-all"
+          style={{
+            background: 'rgba(232,152,29,0.08)',
+            border: '1px solid rgba(232,152,29,0.35)',
+            color: '#E8981D',
+          }}
+          onMouseEnter={e => {
+            (e.currentTarget as HTMLButtonElement).style.background = 'rgba(232,152,29,0.16)';
+          }}
+          onMouseLeave={e => {
+            (e.currentTarget as HTMLButtonElement).style.background = 'rgba(232,152,29,0.08)';
+          }}
+        >
+          <Gamepad2 className="w-4 h-4" />
+          Try Mission Control
+        </button>
+      )}
 
       <p className="text-center font-mono text-xs" style={{ color: 'rgba(232,244,248,0.25)' }}>
         No account needed · Your data stays yours
