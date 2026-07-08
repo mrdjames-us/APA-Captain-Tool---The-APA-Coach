@@ -4,7 +4,7 @@ import {
   getDocs, writeBatch, serverTimestamp, query, orderBy,
 } from 'firebase/firestore';
 import { db } from '../firebase';
-import { Player, Match, SessionArchive, ScheduleEntry } from '../types';
+import { Player, Match, SessionArchive, ScheduleEntry, APAConnection } from '../types';
 
 // ── Path helpers ──────────────────────────────────────────────────────────────
 const col  = (uid: string, name: string) => collection(db, 'captains', uid, name);
@@ -109,6 +109,40 @@ export function useSchedule(uid: string | null) {
   }, [uid]);
 
   return { schedule, loading, save, remove, saveAll };
+}
+
+// ── APA connection (stored as a single settings doc) ─────────────────────────
+// Holds the durable deviceRefreshToken + the member's teams so we can keep
+// syncing without re-entering a password. Treat the token like a credential.
+export function useApaConnection(uid: string | null) {
+  const [connection, setConnection] = useState<APAConnection | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!uid) { setConnection(null); setLoading(false); return; }
+    const unsub = onSnapshot(doc(db, 'captains', uid, 'settings', 'apa'), snap => {
+      setConnection(snap.exists() ? (snap.data() as APAConnection) : null);
+      setLoading(false);
+    });
+    return unsub;
+  }, [uid]);
+
+  const save = useCallback(async (c: APAConnection) => {
+    if (!uid) return;
+    await setDoc(doc(db, 'captains', uid, 'settings', 'apa'), { ...c });
+  }, [uid]);
+
+  const update = useCallback(async (patch: Partial<APAConnection>) => {
+    if (!uid) return;
+    await setDoc(doc(db, 'captains', uid, 'settings', 'apa'), { ...patch }, { merge: true });
+  }, [uid]);
+
+  const disconnect = useCallback(async () => {
+    if (!uid) return;
+    await deleteDoc(doc(db, 'captains', uid, 'settings', 'apa'));
+  }, [uid]);
+
+  return { connection, loading, save, update, disconnect };
 }
 
 // ── Season week (stored as a single doc) ─────────────────────────────────────

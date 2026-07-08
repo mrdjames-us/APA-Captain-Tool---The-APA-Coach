@@ -2,11 +2,11 @@
 import React, { useState } from 'react';
 import {
   LayoutDashboard, Users, CalendarDays, BarChart3,
-  LogOut, Menu, X, Cpu,
+  LogOut, Menu, X, Cpu, Globe, Crosshair,
 } from 'lucide-react';
 import { AppUser } from '../types';
 
-export type TabId = 'dashboard' | 'roster' | 'schedule' | 'planner' | 'history';
+export type TabId = 'dashboard' | 'roster' | 'schedule' | 'planner' | 'history' | 'apa' | 'scouting';
 
 interface LayoutProps {
   children:     React.ReactNode;
@@ -20,8 +20,10 @@ interface LayoutProps {
 const NAV: { id: TabId; label: string; icon: React.ElementType; accent?: string }[] = [
   { id: 'dashboard', label: 'Command Board',   icon: LayoutDashboard },
   { id: 'roster',    label: 'Team Roster',      icon: Users           },
+  { id: 'apa',       label: 'APA Sync',         icon: Globe           },
   { id: 'schedule',  label: 'Schedule',         icon: CalendarDays    },
   { id: 'planner',   label: 'Match Planner',    icon: Cpu             },
+  { id: 'scouting',  label: 'Scouting',         icon: Crosshair       },
   { id: 'history',   label: 'Tactical History', icon: BarChart3       },
 ];
 

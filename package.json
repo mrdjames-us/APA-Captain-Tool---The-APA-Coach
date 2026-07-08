@@ -5,11 +5,15 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "server": "node server/index.js",
+    "dev:full": "concurrently -n vite,api -c cyan,magenta \"vite\" \"node server/index.js\"",
     "build": "vite build",
     "preview": "vite preview"
   },
   "dependencies": {
     "@google/genai": "^1.35.0",
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
     "firebase": "^12.14.0",
     "ical.js": "^2.2.1",
     "lucide-react": "^0.562.0",
@@ -20,6 +24,7 @@
   "devDependencies": {
     "@types/node": "^22.14.0",
     "@vitejs/plugin-react": "^5.0.0",
+    "concurrently": "^9.1.2",
     "typescript": "~5.8.2",
     "vite": "^6.2.0"
   }

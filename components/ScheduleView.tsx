@@ -1,38 +1,73 @@
 
 import React, { useState, useRef } from 'react';
-import { ScheduleEntry } from '../types';
+import { ScheduleEntry, APAConnection } from '../types';
 import { parseScheduleScreenshot, ParsedScheduleEntry } from '../services/gemini';
-import ICAL from 'ical.js';
+import { apaTeam } from '../services/apaApi';
 import {
   Calendar,
-  Upload,
-  Plus,
   Trash2,
   ChevronRight,
-  Home,
   MapPin,
   Loader2,
   AlertCircle,
   CheckCircle2,
-  FileText,
   Image,
+  Globe,
+  RefreshCw,
 } from 'lucide-react';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
 interface ScheduleViewProps {
   schedule: ScheduleEntry[];
+  connection?: APAConnection | null;
   onSaveEntry: (e: ScheduleEntry) => void;
   onDeleteEntry: (id: string) => void;
   onSaveAll: (entries: ScheduleEntry[]) => void;
-  onPlanMatch: (opponentName: string) => void;
+  onPlanMatch: (entry: ScheduleEntry) => void;
 }
 
-type ActiveImport = 'none' | 'screenshot' | 'ics' | 'manual';
+type ActiveImport = 'none' | 'screenshot';
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
 
 const genId = () => Math.random().toString(36).slice(2, 10);
+
+// Merge a freshly-pulled APA schedule for one team into the existing entries.
+// Idempotent: replaces this team's previously-synced entries (keeping manual
+// entries and other teams' synced entries), so re-syncing never duplicates.
+function mergeApaSchedule(
+  existing: ScheduleEntry[],
+  apa: import('../services/apaApi').TeamResult,
+  teamId: number
+): { merged: ScheduleEntry[]; count: number } {
+  const kept = existing.filter(e => e.apaTeamId !== teamId);
+  const format = (apa.roster.format || apa.page.division?.format || null) as 'EIGHT' | 'NINE' | null;
+  const synced: ScheduleEntry[] = apa.schedule.matches
+    .filter(m => !m.isBye && m.opponent)
+    .map(m => {
+      const mine = (m.points || []).find(p => p.homeAway === (m.isHome ? 'HOME' : 'AWAY'));
+      const opp = (m.points || []).find(p => p.homeAway === (m.isHome ? 'AWAY' : 'HOME'));
+      return {
+        id: `apa-${teamId}-${m.id}`,
+        date: m.startTime || new Date().toISOString(),
+        opponentTeamName: `${m.opponent!.name} (${m.opponent!.number})`,
+        location: m.location || undefined,
+        isHome: m.isHome,
+        source: 'apa' as const,
+        apaMatchId: m.id,
+        apaTeamId: teamId,
+        opponentApaTeamId: m.opponent!.id,
+        format: format || undefined,
+        week: m.week,
+        isBye: m.isBye,
+        isScored: m.isScored,
+        myPoints: m.isScored && mine ? mine.total : null,
+        oppPoints: m.isScored && opp ? opp.total : null,
+      };
+    });
+  return { merged: [...kept, ...synced], count: synced.length };
+}
 
 const formatDate = (iso: string): string => {
   try {
@@ -331,286 +366,13 @@ const ScreenshotModal: React.FC<ScreenshotModalProps> = ({ onClose, onImport }) 
   );
 };
 
-// ── ICS import modal ───────────────────────────────────────────────────────────
-
-interface ICSModalProps {
-  onClose: () => void;
-  onImport: (entries: ParsedScheduleEntry[], selected: Set<number>) => void;
-}
-
-const ICSModal: React.FC<ICSModalProps> = ({ onClose, onImport }) => {
-  const [error, setError] = useState<string | null>(null);
-  const [parsed, setParsed] = useState<ParsedScheduleEntry[]>([]);
-  const [selected, setSelected] = useState<Set<number>>(new Set());
-  const fileRef = useRef<HTMLInputElement>(null);
-
-  const processICS = (text: string) => {
-    setError(null);
-    try {
-      const jcal = ICAL.parse(text);
-      const comp = new ICAL.Component(jcal);
-      const vevents = comp.getAllSubcomponents('vevent');
-
-      if (vevents.length === 0) {
-        setError('No events found in this ICS file.');
-        return;
-      }
-
-      const entries: ParsedScheduleEntry[] = vevents.map(ev => {
-        const vevent = new ICAL.Event(ev);
-        const dtstart = vevent.startDate;
-        const jsDate: Date = dtstart ? dtstart.toJSDate() : new Date();
-        const summary: string = vevent.summary ?? 'Unknown Opponent';
-        const location: string | undefined = ev.getFirstPropertyValue('location') as string | undefined;
-
-        return {
-          date: jsDate.toISOString(),
-          opponentTeamName: summary,
-          location: location || undefined,
-          isHome: true,
-        };
-      });
-
-      setParsed(entries);
-      setSelected(new Set(entries.map((_, i) => i)));
-    } catch (e) {
-      setError('Failed to parse ICS file. Make sure it is a valid iCalendar file.');
-      console.error(e);
-    }
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (!file.name.endsWith('.ics') && file.type !== 'text/calendar') {
-      setError('Please select a valid .ics file.');
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = ev => processICS(ev.target?.result as string);
-    reader.onerror = () => setError('Could not read file.');
-    reader.readAsText(file);
-  };
-
-  const toggleIndex = (i: number) => {
-    const next = new Set(selected);
-    if (next.has(i)) next.delete(i);
-    else next.add(i);
-    setSelected(next);
-  };
-
-  const toggleAll = () => {
-    if (selected.size === parsed.length) setSelected(new Set());
-    else setSelected(new Set(parsed.map((_, i) => i)));
-  };
-
-  return (
-    <Modal title="IMPORT FROM ICS FILE" onClose={onClose}>
-      <div
-        onClick={() => fileRef.current?.click()}
-        className="card"
-        style={{
-          border: '2px dashed #00E5FF66',
-          borderRadius: '10px',
-          padding: '28px 16px',
-          textAlign: 'center',
-          cursor: 'pointer',
-          marginBottom: '20px',
-          background: '#00E5FF04',
-        }}
-      >
-        <input
-          ref={fileRef}
-          type="file"
-          accept=".ics,text/calendar"
-          style={{ display: 'none' }}
-          onChange={handleFileChange}
-        />
-        <FileText style={{ width: 32, height: 32, margin: '0 auto 10px', color: '#00E5FF' }} />
-        <p style={{ color: '#00E5FF', fontSize: '13px', fontWeight: 600 }}>
-          Click to select an .ics calendar file
-        </p>
-        <p style={{ color: '#666', fontSize: '11px', marginTop: 4 }}>iCalendar format (.ics)</p>
-      </div>
-
-      {error && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#FF0066', marginBottom: 16, fontSize: 13 }}>
-          <AlertCircle style={{ width: 16, height: 16, flexShrink: 0 }} />
-          {error}
-        </div>
-      )}
-
-      {parsed.length > 0 && (
-        <>
-          <p className="section-label" style={{ marginBottom: 8 }}>
-            FOUND {parsed.length} EVENT{parsed.length !== 1 ? 'S' : ''} — SELECT TO IMPORT
-          </p>
-          <PreviewTable entries={parsed} selected={selected} onToggle={toggleIndex} onToggleAll={toggleAll} />
-          <div style={{ marginTop: 16, display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
-            <button className="btn-neon" onClick={onClose}>CANCEL</button>
-            <button
-              className="btn-solid-cyan"
-              disabled={selected.size === 0}
-              onClick={() => onImport(parsed, selected)}
-              style={{ opacity: selected.size === 0 ? 0.4 : 1 }}
-            >
-              IMPORT SELECTED ({selected.size})
-            </button>
-          </div>
-        </>
-      )}
-    </Modal>
-  );
-};
-
-// ── Manual entry panel ─────────────────────────────────────────────────────────
-
-interface ManualEntryPanelProps {
-  onAdd: (entry: ScheduleEntry) => void;
-  onClose: () => void;
-}
-
-const ManualEntryPanel: React.FC<ManualEntryPanelProps> = ({ onAdd, onClose }) => {
-  const [date, setDate] = useState('');
-  const [opponent, setOpponent] = useState('');
-  const [location, setLocation] = useState('');
-  const [isHome, setIsHome] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const handleAdd = () => {
-    if (!date) { setError('Date is required.'); return; }
-    if (!opponent.trim()) { setError('Opponent name is required.'); return; }
-    setError(null);
-    const entry: ScheduleEntry = {
-      id: genId(),
-      date: new Date(date).toISOString(),
-      opponentTeamName: opponent.trim(),
-      location: location.trim() || undefined,
-      isHome,
-    };
-    onAdd(entry);
-    setDate('');
-    setOpponent('');
-    setLocation('');
-    setIsHome(true);
-  };
-
-  return (
-    <div
-      className="card"
-      style={{ border: '1px solid #00E5FF44', marginBottom: '24px', padding: '20px' }}
-    >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-        <h3 className="font-orbitron text-glow-cyan" style={{ fontSize: '13px', letterSpacing: '0.1em' }}>
-          ADD MANUAL ENTRY
-        </h3>
-        <button
-          onClick={onClose}
-          style={{ color: '#FF0066', background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px' }}
-        >
-          ×
-        </button>
-      </div>
-
-      <div style={{ display: 'grid', gap: 12 }}>
-        {/* Date */}
-        <div>
-          <label className="section-label" style={{ display: 'block', marginBottom: 4 }}>MATCH DATE &amp; TIME</label>
-          <input
-            type="datetime-local"
-            className="input-neon"
-            value={date}
-            onChange={e => setDate(e.target.value)}
-            style={{ width: '100%' }}
-          />
-        </div>
-
-        {/* Opponent */}
-        <div>
-          <label className="section-label" style={{ display: 'block', marginBottom: 4 }}>OPPONENT TEAM NAME</label>
-          <input
-            type="text"
-            className="input-neon"
-            placeholder="e.g. Rack City Rebels"
-            value={opponent}
-            onChange={e => setOpponent(e.target.value)}
-            style={{ width: '100%' }}
-          />
-        </div>
-
-        {/* Location */}
-        <div>
-          <label className="section-label" style={{ display: 'block', marginBottom: 4 }}>LOCATION (OPTIONAL)</label>
-          <input
-            type="text"
-            className="input-neon"
-            placeholder="e.g. Lucky's Bar & Grill"
-            value={location}
-            onChange={e => setLocation(e.target.value)}
-            style={{ width: '100%' }}
-          />
-        </div>
-
-        {/* Home / Away toggle */}
-        <div>
-          <label className="section-label" style={{ display: 'block', marginBottom: 6 }}>HOME OR AWAY</label>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button
-              onClick={() => setIsHome(true)}
-              className={isHome ? 'btn-solid-cyan' : 'btn-neon'}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-                boxShadow: isHome ? '0 0 12px #00E5FF88' : undefined,
-              }}
-            >
-              <Home style={{ width: 13, height: 13 }} />
-              HOME
-            </button>
-            <button
-              onClick={() => setIsHome(false)}
-              className="btn-neon"
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-                color: !isHome ? '#FF0066' : undefined,
-                borderColor: !isHome ? '#FF0066' : undefined,
-                boxShadow: !isHome ? '0 0 12px #FF006688' : undefined,
-              }}
-            >
-              <ChevronRight style={{ width: 13, height: 13 }} />
-              AWAY
-            </button>
-          </div>
-        </div>
-
-        {error && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#FF0066', fontSize: 12 }}>
-            <AlertCircle style={{ width: 14, height: 14 }} />
-            {error}
-          </div>
-        )}
-
-        <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <button className="btn-solid-cyan" onClick={handleAdd} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <Plus style={{ width: 15, height: 15 }} />
-            ADD ENTRY
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 // ── Schedule entry card ────────────────────────────────────────────────────────
 
 interface EntryCardProps {
   entry: ScheduleEntry;
   dimmed?: boolean;
   onDelete: (id: string) => void;
-  onPlanMatch: (opponentName: string) => void;
+  onPlanMatch: (entry: ScheduleEntry) => void;
 }
 
 const EntryCard: React.FC<EntryCardProps> = ({ entry, dimmed, onDelete, onPlanMatch }) => {
@@ -647,6 +409,18 @@ const EntryCard: React.FC<EntryCardProps> = ({ entry, dimmed, onDelete, onPlanMa
         </div>
 
         <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexWrap: 'wrap' }}>
+          {/* Week badge (APA-synced) */}
+          {entry.week != null && (
+            <span
+              style={{
+                fontSize: 10, fontWeight: 700, color: '#888',
+                border: '1px solid #ffffff22', borderRadius: 4,
+                padding: '2px 7px', letterSpacing: '0.06em',
+              }}
+            >
+              WK {entry.week}
+            </span>
+          )}
           {/* Home/Away badge */}
           {entry.isHome ? (
             <span
@@ -679,7 +453,7 @@ const EntryCard: React.FC<EntryCardProps> = ({ entry, dimmed, onDelete, onPlanMa
           )}
 
           {/* Played badge */}
-          {entry.matchId && (
+          {(entry.matchId || entry.isScored) && (
             <span
               style={{
                 fontSize: 10,
@@ -706,6 +480,23 @@ const EntryCard: React.FC<EntryCardProps> = ({ entry, dimmed, onDelete, onPlanMa
         {entry.opponentTeamName}
       </div>
 
+      {/* Result / score (APA-synced, scored matches) */}
+      {entry.isScored && entry.myPoints != null && entry.oppPoints != null && (() => {
+        const won = entry.myPoints > entry.oppPoints;
+        const tie = entry.myPoints === entry.oppPoints;
+        const color = tie ? '#FFB700' : won ? '#00ff88' : '#FF0066';
+        return (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
+            <span style={{ fontWeight: 800, color, letterSpacing: '0.06em' }}>
+              {tie ? 'TIE' : won ? 'WON' : 'LOST'}
+            </span>
+            <span className="font-mono" style={{ color: '#ccc' }}>
+              {entry.myPoints}–{entry.oppPoints}
+            </span>
+          </div>
+        );
+      })()}
+
       {/* Location */}
       {entry.location && (
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#888', fontSize: 12 }}>
@@ -718,7 +509,7 @@ const EntryCard: React.FC<EntryCardProps> = ({ entry, dimmed, onDelete, onPlanMa
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 4 }}>
         <button
           className="btn-neon"
-          onClick={() => onPlanMatch(entry.opponentTeamName)}
+          onClick={() => onPlanMatch(entry)}
           style={{
             fontSize: 11,
             padding: '4px 12px',
@@ -756,12 +547,26 @@ const EntryCard: React.FC<EntryCardProps> = ({ entry, dimmed, onDelete, onPlanMa
 
 interface ImportToolbarProps {
   onScreenshot: () => void;
-  onICS: () => void;
-  onManual: () => void;
+  onApaSync?: () => void;
+  apaConnected?: boolean;
+  syncing?: boolean;
 }
 
-const ImportToolbar: React.FC<ImportToolbarProps> = ({ onScreenshot, onICS, onManual }) => (
+const ImportToolbar: React.FC<ImportToolbarProps> = ({ onScreenshot, onApaSync, apaConnected, syncing }) => (
   <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+    {apaConnected && onApaSync && (
+      <button
+        className="btn-solid-cyan"
+        onClick={onApaSync}
+        disabled={syncing}
+        style={{ display: 'flex', alignItems: 'center', gap: 7, boxShadow: '0 0 12px #00E5FF88' }}
+      >
+        {syncing
+          ? <Loader2 style={{ width: 14, height: 14, animation: 'spin 1s linear infinite' }} />
+          : <Globe style={{ width: 14, height: 14 }} />}
+        {syncing ? 'SYNCING…' : 'SYNC FROM APA'}
+      </button>
+    )}
     <button
       className="btn-neon-gold"
       onClick={onScreenshot}
@@ -770,22 +575,6 @@ const ImportToolbar: React.FC<ImportToolbarProps> = ({ onScreenshot, onICS, onMa
       <Image style={{ width: 14, height: 14 }} />
       SCREENSHOT
     </button>
-    <button
-      className="btn-neon"
-      onClick={onICS}
-      style={{ display: 'flex', alignItems: 'center', gap: 7 }}
-    >
-      <FileText style={{ width: 14, height: 14 }} />
-      ICS FILE
-    </button>
-    <button
-      className="btn-neon"
-      onClick={onManual}
-      style={{ display: 'flex', alignItems: 'center', gap: 7 }}
-    >
-      <Plus style={{ width: 14, height: 14 }} />
-      ADD MANUALLY
-    </button>
   </div>
 );
 
@@ -793,12 +582,35 @@ const ImportToolbar: React.FC<ImportToolbarProps> = ({ onScreenshot, onICS, onMa
 
 export const ScheduleView: React.FC<ScheduleViewProps> = ({
   schedule,
+  connection,
   onSaveEntry,
   onDeleteEntry,
   onSaveAll,
   onPlanMatch,
 }) => {
   const [activeImport, setActiveImport] = useState<ActiveImport>('none');
+  const [syncing, setSyncing] = useState(false);
+  const [syncMsg, setSyncMsg] = useState<{ ok: boolean; text: string } | null>(null);
+
+  const apaConnected = !!(connection && connection.deviceRefreshToken && connection.activeTeamId);
+  const activeTeam = connection?.teams.find(t => t.id === connection.activeTeamId);
+
+  const handleApaSync = async () => {
+    if (!connection || !connection.activeTeamId) return;
+    setSyncing(true);
+    setSyncMsg(null);
+    try {
+      const res = await apaTeam(connection.deviceRefreshToken, connection.activeTeamId);
+      const { merged, count } = mergeApaSchedule(schedule, res, connection.activeTeamId);
+      onSaveAll(merged);
+      const teamLabel = activeTeam ? `${activeTeam.name}` : 'team';
+      setSyncMsg({ ok: true, text: `Synced ${count} matches for ${teamLabel} from poolplayers.com.` });
+    } catch (e: any) {
+      setSyncMsg({ ok: false, text: e.message || 'Sync failed — your APA session may have expired. Reconnect in the APA Sync tab.' });
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   const upcoming = schedule
     .filter(e => isUpcoming(e.date))
@@ -825,14 +637,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
     closeModal();
   };
 
-  const handleManualAdd = (entry: ScheduleEntry) => {
-    onSaveEntry(entry);
-    setActiveImport('none');
-  };
-
   const openScreenshot = () => setActiveImport('screenshot');
-  const openICS = () => setActiveImport('ics');
-  const openManual = () => setActiveImport(prev => (prev === 'manual' ? 'none' : 'manual'));
 
   return (
     <div
@@ -868,14 +673,32 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
 
         <ImportToolbar
           onScreenshot={openScreenshot}
-          onICS={openICS}
-          onManual={openManual}
+          onApaSync={handleApaSync}
+          apaConnected={apaConnected}
+          syncing={syncing}
         />
       </header>
 
-      {/* ── Manual entry panel ── */}
-      {activeImport === 'manual' && (
-        <ManualEntryPanel onAdd={handleManualAdd} onClose={() => setActiveImport('none')} />
+      {/* ── APA sync hint / status ── */}
+      {apaConnected && activeTeam && (
+        <div style={{ marginBottom: 16, fontSize: 12, color: 'rgba(0,229,255,0.7)', display: 'flex', alignItems: 'center', gap: 6 }}>
+          <RefreshCw style={{ width: 12, height: 12 }} />
+          Active team: <strong style={{ color: '#fff' }}>{activeTeam.name}</strong>. Switch teams in the APA Sync tab, then sync again to add another team's matches.
+        </div>
+      )}
+      {syncMsg && (
+        <div
+          style={{
+            marginBottom: 16, padding: '10px 14px', borderRadius: 6, fontSize: 13,
+            display: 'flex', alignItems: 'center', gap: 8,
+            background: syncMsg.ok ? 'rgba(0,255,136,0.07)' : 'rgba(255,0,102,0.08)',
+            border: `1px solid ${syncMsg.ok ? 'rgba(0,255,136,0.3)' : 'rgba(255,0,102,0.3)'}`,
+            color: syncMsg.ok ? '#7dffb8' : '#ff87b0',
+          }}
+        >
+          {syncMsg.ok ? <CheckCircle2 style={{ width: 15, height: 15 }} /> : <AlertCircle style={{ width: 15, height: 15 }} />}
+          {syncMsg.text}
+        </div>
       )}
 
       {/* ── Schedule list ── */}
@@ -897,12 +720,15 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
           <Calendar style={{ width: 48, height: 48, margin: '0 auto 16px', color: '#00E5FF33' }} />
           <p className="section-label" style={{ marginBottom: 20, fontSize: 14 }}>NO MATCHES SCHEDULED</p>
           <p style={{ color: '#444', fontSize: 12, marginBottom: 24 }}>
-            Import your league schedule or add matches manually.
+            {apaConnected
+              ? 'Sync your schedule straight from poolplayers.com, or add matches manually.'
+              : 'Connect your APA account (APA Sync tab) to pull your schedule automatically, or import manually.'}
           </p>
           <ImportToolbar
             onScreenshot={openScreenshot}
-            onICS={openICS}
-            onManual={openManual}
+            onApaSync={handleApaSync}
+            apaConnected={apaConnected}
+            syncing={syncing}
           />
         </div>
       ) : (
@@ -944,10 +770,6 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
         <ScreenshotModal onClose={closeModal} onImport={handleImportConfirm} />
       )}
 
-      {/* ── ICS modal ── */}
-      {activeImport === 'ics' && (
-        <ICSModal onClose={closeModal} onImport={handleImportConfirm} />
-      )}
     </div>
   );
 };

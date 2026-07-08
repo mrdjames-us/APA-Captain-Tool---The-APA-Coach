@@ -52,6 +52,25 @@ export interface ScheduleEntry {
   location?: string;
   isHome: boolean;
   matchId?: string;
+  // Populated when the entry was synced from poolplayers.com.
+  source?: 'apa' | 'manual';
+  apaMatchId?: number;
+  apaTeamId?: number;
+  opponentApaTeamId?: number; // opponent's team id — used to load their roster
+  format?: 'EIGHT' | 'NINE';  // the division format of this match
+  week?: number;
+  isBye?: boolean;
+  isScored?: boolean;
+  myPoints?: number | null;
+  oppPoints?: number | null;
+}
+
+// Context passed to the Match Planner when planning a specific match.
+export interface PlannerContext {
+  opponentName: string;
+  opponentApaTeamId?: number;
+  format?: 'EIGHT' | 'NINE';
+  scheduleEntryId?: string;
 }
 
 export interface AppUser {
@@ -60,4 +79,83 @@ export interface AppUser {
   email: string;
   photoURL: string;
   provider: 'google' | 'facebook';
+}
+
+// ── poolplayers.com (APA) sync ────────────────────────────────────────────────
+// Data pulled live from poolplayers.com's GraphQL API. See docs/poolplayers-api.md.
+
+export interface APATeam {
+  id: number;
+  name: string;
+  number: string;
+  session?: { id: number; name: string } | null;
+}
+
+export interface APARosterPlayer {
+  memberId: number | null;
+  memberNumber: string;
+  name: string;
+  skillLevel: number | null;
+  matchesWon: number;
+  matchesPlayed: number;
+  ppm: number;
+  pa: number;
+}
+
+export interface APARoster {
+  teamId: number;
+  teamName: string;
+  teamNumber: string;
+  format: 'EIGHT' | 'NINE' | null;
+  players: APARosterPlayer[];
+}
+
+export interface APAMatch {
+  id: number;
+  week: number;
+  type: string;
+  isBye: boolean;
+  isScored: boolean;
+  isFinalized: boolean;
+  isPlayoff: boolean;
+  startTime: string | null;
+  isHome: boolean;
+  opponent: { id: number; name: string; number: string } | null;
+  location: string | null;
+  points: { homeAway: string; total: number | null }[];
+}
+
+export interface APASchedule {
+  teamId: number;
+  sessionPoints: number;
+  sessionBonusPoints: number;
+  sessionTotalPoints: number;
+  matches: APAMatch[];
+}
+
+export interface APATeamPage {
+  id: number;
+  name: string;
+  number: string;
+  standing: number | null;
+  isTied: boolean;
+  division: {
+    id: number;
+    name: string;
+    number: string;
+    format: string;
+    nightOfPlay: string;
+    timeOfPlay: string;
+  } | null;
+  location: string | null;
+  session: { id: number; name: string } | null;
+}
+
+// What we persist locally to keep syncing without re-entering a password.
+export interface APAConnection {
+  deviceRefreshToken: string;
+  member: { id: number; firstName: string; lastName: string } | null;
+  teams: APATeam[];
+  activeTeamId: number | null;
+  connectedAt: string;
 }

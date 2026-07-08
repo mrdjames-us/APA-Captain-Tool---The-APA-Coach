@@ -7,25 +7,28 @@ import { Roster } from './components/Roster';
 import { MatchPlanner } from './components/MatchPlanner';
 import { Performance } from './components/Performance';
 import { ScheduleView } from './components/ScheduleView';
+import { APAConnect } from './components/APAConnect';
+import { Scouting } from './components/Scouting';
 
 import { useAuth } from './hooks/useAuth';
-import { usePlayers, useMatches, useArchives, useSchedule, useSeasonWeek } from './hooks/useFirestore';
+import { usePlayers, useMatches, useArchives, useSchedule, useSeasonWeek, useApaConnection } from './hooks/useFirestore';
 
-import { Player, SkillLevel, Match, GameType, SessionArchive, ScheduleEntry } from './types';
+import { Player, SkillLevel, Match, GameType, SessionArchive, ScheduleEntry, PlannerContext } from './types';
 import { Loader2 } from 'lucide-react';
 
 const App: React.FC = () => {
   const { user, loading: authLoading, error: authError, loginGoogle, loginFacebook, logout } = useAuth();
   const uid = user?.uid ?? null;
 
-  const { players, save: savePlayer, remove: removePlayer } = usePlayers(uid);
+  const { players, save: savePlayer, remove: removePlayer, saveAll: saveAllPlayers } = usePlayers(uid);
+  const { connection: apaConnection, save: saveApa, update: updateApa, disconnect: disconnectApa } = useApaConnection(uid);
   const { matches, save: saveMatch } = useMatches(uid);
   const { archives, save: saveArchive, deleteAllMatches } = useArchives(uid);
   const { schedule, save: saveScheduleEntry, remove: removeScheduleEntry, saveAll: saveAllSchedule } = useSchedule(uid);
   const [currentWeek, setCurrentWeek] = useSeasonWeek(uid);
 
   const [activeTab, setActiveTab] = useState<TabId>('dashboard');
-  const [plannerOpponent, setPlannerOpponent] = useState<string | undefined>(undefined);
+  const [plannerContext, setPlannerContext] = useState<PlannerContext | undefined>(undefined);
 
   // ── Player ops ──────────────────────────────────────────────────────────────
   const addPlayer = useCallback((name: string, skill8: SkillLevel, skill9: SkillLevel) => {
@@ -80,8 +83,13 @@ const App: React.FC = () => {
   }, [matches, players, saveArchive, deleteAllMatches, savePlayer]);
 
   // ── Schedule ops ────────────────────────────────────────────────────────────
-  const planMatchFromSchedule = useCallback((opponentName: string) => {
-    setPlannerOpponent(opponentName);
+  const planMatchFromSchedule = useCallback((entry: ScheduleEntry) => {
+    setPlannerContext({
+      opponentName: entry.opponentTeamName,
+      opponentApaTeamId: entry.opponentApaTeamId,
+      format: entry.format,
+      scheduleEntryId: entry.id,
+    });
     setActiveTab('planner');
   }, []);
 
@@ -140,6 +148,7 @@ const App: React.FC = () => {
       {activeTab === 'schedule' && (
         <ScheduleView
           schedule={schedule}
+          connection={apaConnection}
           onSaveEntry={saveScheduleEntry}
           onDeleteEntry={removeScheduleEntry}
           onSaveAll={saveAllSchedule}
@@ -150,10 +159,26 @@ const App: React.FC = () => {
       {activeTab === 'planner' && (
         <MatchPlanner
           players={activePlayers}
+          connection={apaConnection}
           onMatchComplete={recordMatch}
           userId={user.uid}
-          opponentFromSchedule={plannerOpponent}
+          context={plannerContext}
         />
+      )}
+
+      {activeTab === 'apa' && (
+        <APAConnect
+          connection={apaConnection}
+          players={players}
+          onSaveConnection={saveApa}
+          onUpdateConnection={updateApa}
+          onDisconnect={disconnectApa}
+          onImportPlayers={saveAllPlayers}
+        />
+      )}
+
+      {activeTab === 'scouting' && (
+        <Scouting connection={apaConnection} />
       )}
 
       {activeTab === 'history' && (
