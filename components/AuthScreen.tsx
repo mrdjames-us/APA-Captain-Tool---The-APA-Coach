@@ -69,7 +69,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onGoogle, onFacebook, lo
           <h2
             className="font-orbitron font-bold text-2xl tracking-[.35em] text-white mt-1"
           >
-            COACH
+            CAPTAIN
           </h2>
           <p className="section-label mt-3 opacity-70">Captain · Strategy · Victory</p>
         </div>

@@ -1,6 +1,6 @@
 rules_version = '2';
 
-// APA Coach data model: every captain's data lives under captains/{uid}/**
+// APA Captain data model: every captain's data lives under captains/{uid}/**
 // (players, matches, archives, schedule, settings/season, settings/apa).
 // Each signed-in user may read and write ONLY their own subtree — nobody can
 // read or write another captain's data.

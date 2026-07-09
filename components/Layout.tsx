@@ -199,7 +199,7 @@ const LogoMark = () => (
         APA
       </span>
       <span className="font-orbitron font-semibold text-lg tracking-wider ml-1" style={{ color: '#EFE7D6' }}>
-        COACH
+        CAPTAIN
       </span>
     </div>
   </div>
