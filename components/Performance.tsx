@@ -14,25 +14,25 @@ interface PerformanceProps {
   onArchiveSession: (name: string) => void;
 }
 
-const CYAN    = '#00E5FF';
-const MAGENTA = '#FF0066';
-const GOLD    = '#FFB700';
-const GREEN   = '#00FF88';
+const CYAN    = '#39A7C9';
+const MAGENTA = '#D14A3C';
+const GOLD    = '#F2C14E';
+const GREEN   = '#39C46B';
 
 // ── Shared dark tooltip ────────────────────────────────────────────────────────
 const NeonTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null;
   return (
     <div style={{
-      background: 'rgba(0,0,8,0.97)',
-      border: '1px solid rgba(0,229,255,0.3)',
+      background: 'rgba(10,31,23,0.97)',
+      border: '1px solid rgba(57,167,201,0.3)',
       borderRadius: 8,
       padding: '10px 14px',
       fontSize: 11,
-      boxShadow: '0 0 20px rgba(0,229,255,0.15)',
+      boxShadow: '0 0 20px rgba(57,167,201,0.15)',
     }}>
       <p style={{
-        color: 'rgba(208,232,255,0.55)',
+        color: 'rgba(239,231,214,0.55)',
         marginBottom: 6,
         fontWeight: 700,
         textTransform: 'uppercase',
@@ -82,7 +82,7 @@ const StatCard: React.FC<StatCardProps> = ({ icon, label, value, sub, accentColo
     >
       {value}
     </p>
-    <p style={{ fontSize: 11, color: 'rgba(208,232,255,0.75)', marginTop: 8, fontFamily: 'Space Mono, monospace' }}>
+    <p style={{ fontSize: 11, color: 'rgba(239,231,214,0.75)', marginTop: 8, fontFamily: 'Space Mono, monospace' }}>
       {sub}
     </p>
   </div>
@@ -106,14 +106,18 @@ export const Performance: React.FC<PerformanceProps> = ({
 
   const activePlayers = players.filter(p => p.isActive);
 
+  // Keep 8-ball and 9-ball separate — in this league they're different teams,
+  // so a combined "total" would mix two teams' records.
   const playerStats = players
     .filter(p => p.games8Ball + p.games9Ball > 0)
     .map(p => ({
       name: p.name.split(' ')[0],
-      winRate: Math.round(((p.wins8Ball + p.wins9Ball) / (p.games8Ball + p.games9Ball)) * 100),
-      totalGames: p.games8Ball + p.games9Ball,
+      winRate8: p.games8Ball > 0 ? Math.round((p.wins8Ball / p.games8Ball) * 100) : 0,
+      winRate9: p.games9Ball > 0 ? Math.round((p.wins9Ball / p.games9Ball) * 100) : 0,
+      games8: p.games8Ball,
+      games9: p.games9Ball,
     }))
-    .sort((a, b) => b.winRate - a.winRate);
+    .sort((a, b) => (b.winRate8 + b.winRate9) - (a.winRate8 + a.winRate9));
 
   const matchTimeline = matches.map((m, i) => ({
     match: i + 1,
@@ -144,7 +148,7 @@ export const Performance: React.FC<PerformanceProps> = ({
           >
             TACTICAL HISTORY
           </h2>
-          <p className="section-label mt-2" style={{ color: 'rgba(255,183,0,0.82)' }}>
+          <p className="section-label mt-2" style={{ color: 'rgba(242,193,78,0.82)' }}>
             Combat effectiveness &amp; seasonal mission data
           </p>
         </div>
@@ -171,11 +175,11 @@ export const Performance: React.FC<PerformanceProps> = ({
         >
           <h3
             className="font-orbitron"
-            style={{ fontSize: 14, fontWeight: 800, color: '#D0E8FF', letterSpacing: '0.12em', marginBottom: 8 }}
+            style={{ fontSize: 14, fontWeight: 800, color: '#EFE7D6', letterSpacing: '0.12em', marginBottom: 8 }}
           >
             CONFIRM MISSION COMPLETION
           </h3>
-          <p style={{ fontSize: 13, color: 'rgba(208,232,255,0.78)', marginBottom: 24, lineHeight: 1.6 }}>
+          <p style={{ fontSize: 13, color: 'rgba(239,231,214,0.78)', marginBottom: 24, lineHeight: 1.6 }}>
             This will archive all active matches and reset player session stats.
             Historical data will be preserved in the mission archive.
           </p>
@@ -230,7 +234,7 @@ export const Performance: React.FC<PerformanceProps> = ({
           label="Matches Run"
           value={matches.length}
           sub="Current session timeline"
-          accentColor={MAGENTA}
+          accentColor="#F2C14E"
         />
       </div>
 
@@ -243,7 +247,7 @@ export const Performance: React.FC<PerformanceProps> = ({
             <div style={{ width: 3, height: 22, background: CYAN, borderRadius: 2, boxShadow: `0 0 8px ${CYAN}` }} />
             <h4
               className="font-orbitron"
-              style={{ fontSize: 11, fontWeight: 800, color: '#D0E8FF', letterSpacing: '0.12em' }}
+              style={{ fontSize: 11, fontWeight: 800, color: '#EFE7D6', letterSpacing: '0.12em' }}
             >
               PERFORMANCE LEADERBOARD
             </h4>
@@ -253,11 +257,11 @@ export const Performance: React.FC<PerformanceProps> = ({
             {playerStats.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={playerStats} layout="vertical" barSize={16}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,229,255,0.06)" horizontal={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(57,167,201,0.06)" horizontal={false} />
                   <XAxis
                     type="number"
                     domain={[0, 100]}
-                    stroke="rgba(208,232,255,0.2)"
+                    stroke="rgba(239,231,214,0.2)"
                     fontSize={9}
                     tickLine={false}
                     axisLine={false}
@@ -267,7 +271,7 @@ export const Performance: React.FC<PerformanceProps> = ({
                   <YAxis
                     dataKey="name"
                     type="category"
-                    stroke="rgba(208,232,255,0.3)"
+                    stroke="rgba(239,231,214,0.3)"
                     fontSize={10}
                     tickLine={false}
                     axisLine={false}
@@ -276,23 +280,28 @@ export const Performance: React.FC<PerformanceProps> = ({
                   />
                   <Tooltip
                     content={<NeonTooltip />}
-                    cursor={{ fill: 'rgba(0,229,255,0.04)' }}
+                    cursor={{ fill: 'rgba(57,167,201,0.04)' }}
                   />
-                  <Bar
-                    dataKey="winRate"
-                    name="Win Rate"
-                    fill={CYAN}
-                    radius={[0, 4, 4, 0]}
-                    style={{ filter: `drop-shadow(0 0 6px ${CYAN})` }}
-                  />
+                  <Bar dataKey="winRate8" name="8-Ball %" fill={CYAN}      radius={[0, 4, 4, 0]} />
+                  <Bar dataKey="winRate9" name="9-Ball %" fill="#F2C14E" radius={[0, 4, 4, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
               <div className="flex items-center justify-center h-full">
-                <p className="section-label" style={{ color: 'rgba(208,232,255,0.6)' }}>No player data yet</p>
+                <p className="section-label" style={{ color: 'rgba(239,231,214,0.6)' }}>No player data yet</p>
               </div>
             )}
           </div>
+          {playerStats.length > 0 && (
+            <div className="flex items-center justify-center gap-5 mt-3">
+              <span className="flex items-center gap-1.5 text-xs" style={{ color: 'rgba(239,231,214,0.7)' }}>
+                <span style={{ width: 10, height: 10, borderRadius: '50%', background: CYAN }} /> 8-Ball
+              </span>
+              <span className="flex items-center gap-1.5 text-xs" style={{ color: 'rgba(239,231,214,0.7)' }}>
+                <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#F2C14E' }} /> 9-Ball
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Success Trends — LineChart */}
@@ -301,7 +310,7 @@ export const Performance: React.FC<PerformanceProps> = ({
             <div style={{ width: 3, height: 22, background: GREEN, borderRadius: 2, boxShadow: `0 0 8px ${GREEN}` }} />
             <h4
               className="font-orbitron"
-              style={{ fontSize: 11, fontWeight: 800, color: '#D0E8FF', letterSpacing: '0.12em' }}
+              style={{ fontSize: 11, fontWeight: 800, color: '#EFE7D6', letterSpacing: '0.12em' }}
             >
               SUCCESS TRENDS
             </h4>
@@ -311,18 +320,18 @@ export const Performance: React.FC<PerformanceProps> = ({
             {matchTimeline.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={matchTimeline}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,229,255,0.06)" vertical={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(57,167,201,0.06)" vertical={false} />
                   <XAxis
                     dataKey="match"
-                    stroke="rgba(208,232,255,0.25)"
+                    stroke="rgba(239,231,214,0.25)"
                     fontSize={10}
                     tickLine={false}
                     axisLine={false}
                     style={{ fontFamily: 'Space Mono, monospace' }}
-                    label={{ value: 'Match #', position: 'insideBottom', offset: -2, fill: 'rgba(208,232,255,0.25)', fontSize: 9 }}
+                    label={{ value: 'Match #', position: 'insideBottom', offset: -2, fill: 'rgba(239,231,214,0.25)', fontSize: 9 }}
                   />
                   <YAxis
-                    stroke="rgba(208,232,255,0.25)"
+                    stroke="rgba(239,231,214,0.25)"
                     fontSize={10}
                     tickLine={false}
                     axisLine={false}
@@ -330,7 +339,7 @@ export const Performance: React.FC<PerformanceProps> = ({
                   />
                   <Tooltip
                     content={<NeonTooltip />}
-                    cursor={{ stroke: 'rgba(0,255,136,0.2)', strokeWidth: 1 }}
+                    cursor={{ stroke: 'rgba(57,196,107,0.2)', strokeWidth: 1 }}
                   />
                   <Line
                     type="monotone"
@@ -338,7 +347,7 @@ export const Performance: React.FC<PerformanceProps> = ({
                     name="Wins"
                     stroke={GREEN}
                     strokeWidth={2.5}
-                    dot={{ r: 4, fill: GREEN, stroke: 'rgba(0,0,8,0.8)', strokeWidth: 2 }}
+                    dot={{ r: 4, fill: GREEN, stroke: 'rgba(10,31,23,0.8)', strokeWidth: 2 }}
                     activeDot={{ r: 6, fill: GREEN, stroke: GREEN, strokeWidth: 0, style: { filter: `drop-shadow(0 0 8px ${GREEN})` } }}
                     style={{ filter: `drop-shadow(0 0 4px ${GREEN})` }}
                   />
@@ -346,7 +355,7 @@ export const Performance: React.FC<PerformanceProps> = ({
               </ResponsiveContainer>
             ) : (
               <div className="flex items-center justify-center h-full">
-                <p className="section-label" style={{ color: 'rgba(208,232,255,0.6)' }}>No match timeline yet</p>
+                <p className="section-label" style={{ color: 'rgba(239,231,214,0.6)' }}>No match timeline yet</p>
               </div>
             )}
           </div>
@@ -359,7 +368,7 @@ export const Performance: React.FC<PerformanceProps> = ({
           <History style={{ width: 18, height: 18, color: GOLD }} />
           <h3
             className="font-orbitron"
-            style={{ fontSize: 13, fontWeight: 800, color: '#D0E8FF', letterSpacing: '0.1em' }}
+            style={{ fontSize: 13, fontWeight: 800, color: '#EFE7D6', letterSpacing: '0.1em' }}
           >
             MISSION ARCHIVE
           </h3>
@@ -370,16 +379,16 @@ export const Performance: React.FC<PerformanceProps> = ({
             className="rounded-3xl flex flex-col items-center justify-center"
             style={{
               padding: '56px 20px',
-              border: '1px dashed rgba(0,229,255,0.15)',
-              background: 'rgba(0,0,8,0.4)',
+              border: '1px dashed rgba(57,167,201,0.15)',
+              background: 'rgba(10,31,23,0.4)',
               textAlign: 'center',
             }}
           >
-            <Archive style={{ width: 40, height: 40, color: 'rgba(0,229,255,0.4)', marginBottom: 14 }} />
-            <p className="section-label" style={{ color: 'rgba(208,232,255,0.7)' }}>
+            <Archive style={{ width: 40, height: 40, color: 'rgba(57,167,201,0.4)', marginBottom: 14 }} />
+            <p className="section-label" style={{ color: 'rgba(239,231,214,0.7)' }}>
               No historical archives found
             </p>
-            <p style={{ fontSize: 12, color: 'rgba(208,232,255,0.55)', marginTop: 6, fontFamily: 'Space Mono, monospace' }}>
+            <p style={{ fontSize: 12, color: 'rgba(239,231,214,0.55)', marginTop: 6, fontFamily: 'Space Mono, monospace' }}>
               End a session to create the first archive
             </p>
           </div>
@@ -411,7 +420,7 @@ export const Performance: React.FC<PerformanceProps> = ({
                         style={{
                           fontSize: 12,
                           fontWeight: 800,
-                          color: '#D0E8FF',
+                          color: '#EFE7D6',
                           letterSpacing: '0.06em',
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
@@ -422,7 +431,7 @@ export const Performance: React.FC<PerformanceProps> = ({
                       </h4>
                       <p
                         className="section-label mt-1"
-                        style={{ color: 'rgba(208,232,255,0.68)' }}
+                        style={{ color: 'rgba(239,231,214,0.68)' }}
                       >
                         {new Date(archive.startDate).toLocaleDateString()}
                         {' — '}
@@ -441,13 +450,13 @@ export const Performance: React.FC<PerformanceProps> = ({
                         }}>
                           {archiveWinPct}%
                         </p>
-                        <p className="section-label" style={{ color: 'rgba(208,232,255,0.65)' }}>Win Rate</p>
+                        <p className="section-label" style={{ color: 'rgba(239,231,214,0.65)' }}>Win Rate</p>
                       </div>
 
                       <div style={{
                         textAlign: 'right',
                         paddingLeft: 16,
-                        borderLeft: '1px solid rgba(0,229,255,0.12)',
+                        borderLeft: '1px solid rgba(57,167,201,0.12)',
                       }}>
                         <p style={{
                           fontFamily: 'Space Mono, monospace',
@@ -458,7 +467,7 @@ export const Performance: React.FC<PerformanceProps> = ({
                         }}>
                           {archive.matches.length}
                         </p>
-                        <p className="section-label" style={{ color: 'rgba(208,232,255,0.65)' }}>Matches</p>
+                        <p className="section-label" style={{ color: 'rgba(239,231,214,0.65)' }}>Matches</p>
                       </div>
                     </div>
                   </div>
@@ -467,7 +476,7 @@ export const Performance: React.FC<PerformanceProps> = ({
                   <div style={{
                     marginTop: 14,
                     height: 2,
-                    background: 'rgba(0,229,255,0.08)',
+                    background: 'rgba(57,167,201,0.08)',
                     borderRadius: 2,
                     overflow: 'hidden',
                   }}>

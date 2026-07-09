@@ -56,7 +56,7 @@ const StatControl: React.FC<{
     <p className="section-label">{label}</p>
     <div
       className="flex items-center gap-2 rounded-xl p-1"
-      style={{ background: 'rgba(2,4,20,0.85)', border: '1px solid rgba(0,229,255,0.2)' }}
+      style={{ background: 'rgba(2,4,20,0.85)', border: '1px solid rgba(57,167,201,0.2)' }}
     >
       <button
         type="button"
@@ -66,7 +66,7 @@ const StatControl: React.FC<{
       >
         <Minus className="w-3 h-3" />
       </button>
-      <span className="flex-1 text-center font-mono font-black" style={{ color: '#00E5FF' }}>
+      <span className="flex-1 text-center font-mono font-black" style={{ color: '#39A7C9' }}>
         {value}
       </span>
       <button
@@ -247,11 +247,11 @@ export const Roster: React.FC<RosterProps> = ({
     position: 'relative',
     zIndex: 10,
     background: 'rgba(2,4,20,0.97)',
-    border: '1px solid rgba(0,229,255,0.33)',
+    border: '1px solid rgba(57,167,201,0.33)',
     borderRadius: '2rem',
     padding: '2rem',
     width: '100%',
-    boxShadow: '0 0 40px rgba(0,229,255,0.13)',
+    boxShadow: '0 0 40px rgba(57,167,201,0.13)',
   };
 
   return (
@@ -262,7 +262,7 @@ export const Roster: React.FC<RosterProps> = ({
         <div>
           <h2
             className="font-orbitron font-black text-3xl text-glow-gold"
-            style={{ color: '#FFB700', letterSpacing: '0.08em' }}
+            style={{ color: '#F2C14E', letterSpacing: '0.08em' }}
           >
             TEAM ROSTER
           </h2>
@@ -271,8 +271,8 @@ export const Roster: React.FC<RosterProps> = ({
               onClick={() => setShowArchived(false)}
               className="section-label pb-1 transition-all"
               style={{
-                color: !showArchived ? '#00E5FF' : 'rgba(180,220,255,0.45)',
-                borderBottom: !showArchived ? '2px solid #00E5FF' : '2px solid transparent',
+                color: !showArchived ? '#39A7C9' : 'rgba(180,220,255,0.45)',
+                borderBottom: !showArchived ? '2px solid #39A7C9' : '2px solid transparent',
               }}
             >
               ACTIVE
@@ -281,8 +281,8 @@ export const Roster: React.FC<RosterProps> = ({
               onClick={() => setShowArchived(true)}
               className="section-label pb-1 transition-all"
               style={{
-                color: showArchived ? '#FF0066' : 'rgba(180,220,255,0.45)',
-                borderBottom: showArchived ? '2px solid #FF0066' : '2px solid transparent',
+                color: showArchived ? '#D14A3C' : 'rgba(180,220,255,0.45)',
+                borderBottom: showArchived ? '2px solid #D14A3C' : '2px solid transparent',
               }}
             >
               ARCHIVED
@@ -295,7 +295,7 @@ export const Roster: React.FC<RosterProps> = ({
           <button
             onClick={() => setIsImportOpen(true)}
             className="btn-neon flex items-center gap-2 px-4 py-2 text-xs font-orbitron"
-            style={{ borderColor: '#FFB700', color: '#FFB700', boxShadow: '0 0 8px rgba(255,183,0,0.25)' }}
+            style={{ borderColor: '#F2C14E', color: '#F2C14E', boxShadow: '0 0 8px rgba(242,193,78,0.25)' }}
           >
             <ImageIcon className="w-4 h-4" />
             IMPORT VIA SCREENSHOT
@@ -316,18 +316,18 @@ export const Roster: React.FC<RosterProps> = ({
       {confirmArchivePlayer && (
         <div className={modalBack}>
           <div className={overlay} onClick={() => setConfirmArchivePlayer(null)} />
-          <div style={{ ...modalBoxStyle, maxWidth: 420, borderColor: 'rgba(255,0,102,0.33)' }}>
+          <div style={{ ...modalBoxStyle, maxWidth: 420, borderColor: 'rgba(209,74,60,0.33)' }}>
             <div className="flex justify-center mb-5">
               <div
                 className="w-16 h-16 rounded-full flex items-center justify-center"
-                style={{ background: 'rgba(255,0,102,0.1)', border: '1px solid rgba(255,0,102,0.33)' }}
+                style={{ background: 'rgba(209,74,60,0.1)', border: '1px solid rgba(209,74,60,0.33)' }}
               >
-                <AlertTriangle className="w-8 h-8" style={{ color: '#FF0066' }} />
+                <AlertTriangle className="w-8 h-8" style={{ color: '#D14A3C' }} />
               </div>
             </div>
             <h3
               className="font-orbitron font-black text-xl text-center mb-2"
-              style={{ color: '#FF0066', textShadow: '0 0 12px rgba(255,0,102,0.6)' }}
+              style={{ color: '#D14A3C', textShadow: '0 0 12px rgba(209,74,60,0.6)' }}
             >
               ARCHIVE PLAYER?
             </h3>
@@ -365,7 +365,7 @@ export const Roster: React.FC<RosterProps> = ({
             <div className="flex justify-between items-center mb-6">
               <h3
                 className="font-orbitron font-black text-lg flex items-center gap-2 text-glow-cyan"
-                style={{ color: '#00E5FF' }}
+                style={{ color: '#39A7C9' }}
               >
                 <Edit2 className="w-5 h-5" /> EDIT PLAYER
               </h3>
@@ -435,10 +435,10 @@ export const Roster: React.FC<RosterProps> = ({
               {/* Stats steppers */}
               <div
                 className="grid grid-cols-2 gap-6 pt-4"
-                style={{ borderTop: '1px solid rgba(0,229,255,0.13)' }}
+                style={{ borderTop: '1px solid rgba(57,167,201,0.13)' }}
               >
                 <div className="space-y-3">
-                  <p className="section-label" style={{ color: '#00E5FF' }}>
+                  <p className="section-label" style={{ color: '#39A7C9' }}>
                     8-BALL HISTORY
                   </p>
                   <StatControl
@@ -455,7 +455,7 @@ export const Roster: React.FC<RosterProps> = ({
                   />
                 </div>
                 <div className="space-y-3">
-                  <p className="section-label" style={{ color: '#FF0066' }}>
+                  <p className="section-label" style={{ color: '#F2C14E' }}>
                     9-BALL HISTORY
                   </p>
                   <StatControl
@@ -488,11 +488,11 @@ export const Roster: React.FC<RosterProps> = ({
       {isImportOpen && (
         <div className={`${modalBack} overflow-y-auto`}>
           <div className={overlay} onClick={closeImport} />
-          <div style={{ ...modalBoxStyle, maxWidth: 580, borderColor: 'rgba(255,183,0,0.33)' }}>
+          <div style={{ ...modalBoxStyle, maxWidth: 580, borderColor: 'rgba(242,193,78,0.33)' }}>
             <div className="flex justify-between items-center mb-5">
               <h3
                 className="font-orbitron font-black text-lg text-glow-gold"
-                style={{ color: '#FFB700' }}
+                style={{ color: '#F2C14E' }}
               >
                 IMPORT VIA SCREENSHOT
               </h3>
@@ -511,14 +511,14 @@ export const Roster: React.FC<RosterProps> = ({
                 className="card flex flex-col items-center justify-center gap-4 cursor-pointer transition-all py-12"
                 style={{
                   borderStyle: 'dashed',
-                  borderColor: isDragging ? '#00E5FF' : 'rgba(0,229,255,0.33)',
-                  boxShadow: isDragging ? '0 0 20px rgba(0,229,255,0.27)' : undefined,
+                  borderColor: isDragging ? '#39A7C9' : 'rgba(57,167,201,0.33)',
+                  boxShadow: isDragging ? '0 0 20px rgba(57,167,201,0.27)' : undefined,
                   minHeight: 180,
                 }}
               >
-                <Upload className="w-10 h-10" style={{ color: '#00E5FF' }} />
+                <Upload className="w-10 h-10" style={{ color: '#39A7C9' }} />
                 <div className="text-center">
-                  <p className="font-orbitron text-sm" style={{ color: '#00E5FF' }}>
+                  <p className="font-orbitron text-sm" style={{ color: '#39A7C9' }}>
                     DROP IMAGE HERE
                   </p>
                   <p className="text-xs mt-1" style={{ color: 'rgba(180,220,255,0.65)' }}>
@@ -526,7 +526,7 @@ export const Roster: React.FC<RosterProps> = ({
                   </p>
                 </div>
                 {importFile && (
-                  <p className="text-xs font-mono" style={{ color: '#FFB700' }}>
+                  <p className="text-xs font-mono" style={{ color: '#F2C14E' }}>
                     {importFile.name}
                   </p>
                 )}
@@ -546,9 +546,9 @@ export const Roster: React.FC<RosterProps> = ({
               <div className="flex flex-col items-center justify-center gap-4 py-16">
                 <Loader2
                   className="w-10 h-10 animate-spin"
-                  style={{ color: '#00E5FF' }}
+                  style={{ color: '#39A7C9' }}
                 />
-                <p className="font-orbitron text-sm text-glow-cyan" style={{ color: '#00E5FF' }}>
+                <p className="font-orbitron text-sm text-glow-cyan" style={{ color: '#39A7C9' }}>
                   SCANNING ROSTER...
                 </p>
               </div>
@@ -558,10 +558,10 @@ export const Roster: React.FC<RosterProps> = ({
             {importError && (
               <div
                 className="flex items-center gap-3 rounded-xl p-4 mt-3"
-                style={{ background: 'rgba(255,0,102,0.1)', border: '1px solid rgba(255,0,102,0.33)' }}
+                style={{ background: 'rgba(209,74,60,0.1)', border: '1px solid rgba(209,74,60,0.33)' }}
               >
-                <AlertTriangle className="w-5 h-5 shrink-0" style={{ color: '#FF0066' }} />
-                <p className="text-sm" style={{ color: '#FF0066' }}>
+                <AlertTriangle className="w-5 h-5 shrink-0" style={{ color: '#D14A3C' }} />
+                <p className="text-sm" style={{ color: '#D14A3C' }}>
                   {importError}
                 </p>
               </div>
@@ -570,16 +570,16 @@ export const Roster: React.FC<RosterProps> = ({
             {/* Parsed preview table */}
             {importParsed.length > 0 && !importLoading && (
               <div className="space-y-4 mt-2">
-                <p className="section-label" style={{ color: '#00E5FF' }}>
+                <p className="section-label" style={{ color: '#39A7C9' }}>
                   {importParsed.length} PLAYER{importParsed.length !== 1 ? 'S' : ''} DETECTED
                 </p>
                 <div
                   className="rounded-xl overflow-hidden"
-                  style={{ border: '1px solid rgba(0,229,255,0.2)' }}
+                  style={{ border: '1px solid rgba(57,167,201,0.2)' }}
                 >
                   <table className="w-full text-xs">
                     <thead>
-                      <tr style={{ background: 'rgba(0,229,255,0.07)' }}>
+                      <tr style={{ background: 'rgba(57,167,201,0.07)' }}>
                         <th className="py-2 px-3 text-left section-label">SEL</th>
                         <th className="py-2 px-3 text-left section-label">NAME</th>
                         <th className="py-2 px-3 text-center section-label">8-BALL SL</th>
@@ -593,8 +593,8 @@ export const Roster: React.FC<RosterProps> = ({
                           onClick={() => toggleImportRow(i)}
                           className="cursor-pointer transition-colors"
                           style={{
-                            background: importSelected.has(i) ? 'rgba(0,229,255,0.05)' : 'transparent',
-                            borderTop: '1px solid rgba(0,229,255,0.1)',
+                            background: importSelected.has(i) ? 'rgba(57,167,201,0.05)' : 'transparent',
+                            borderTop: '1px solid rgba(57,167,201,0.1)',
                           }}
                         >
                           <td className="py-2 px-3">
@@ -604,7 +604,7 @@ export const Roster: React.FC<RosterProps> = ({
                               onChange={() => toggleImportRow(i)}
                               onClick={(e) => e.stopPropagation()}
                               className="w-4 h-4 cursor-pointer"
-                              style={{ accentColor: '#00E5FF' }}
+                              style={{ accentColor: '#39A7C9' }}
                             />
                           </td>
                           <td className="py-2 px-3 font-bold" style={{ color: '#e0f7ff' }}>
@@ -612,7 +612,7 @@ export const Roster: React.FC<RosterProps> = ({
                           </td>
                           <td className="py-2 px-3">
                             <div className="flex flex-col items-center gap-1">
-                              <span className="font-mono" style={{ color: '#00E5FF' }}>
+                              <span className="font-mono" style={{ color: '#39A7C9' }}>
                                 SL {p.skillLevel8Ball}
                               </span>
                               <SkillLEDs level={p.skillLevel8Ball} color="cyan" />
@@ -620,10 +620,10 @@ export const Roster: React.FC<RosterProps> = ({
                           </td>
                           <td className="py-2 px-3">
                             <div className="flex flex-col items-center gap-1">
-                              <span className="font-mono" style={{ color: '#FF0066' }}>
+                              <span className="font-mono" style={{ color: '#F2C14E' }}>
                                 SL {p.skillLevel9Ball}
                               </span>
-                              <SkillLEDs level={p.skillLevel9Ball} color="magenta" />
+                              <SkillLEDs level={p.skillLevel9Ball} color="gold" />
                             </div>
                           </td>
                         </tr>
@@ -658,7 +658,7 @@ export const Roster: React.FC<RosterProps> = ({
       {isAdding && (
         <div className="card p-6">
           <form onSubmit={handleAddSubmit} className="space-y-4">
-            <p className="font-orbitron text-sm" style={{ color: '#00E5FF' }}>
+            <p className="font-orbitron text-sm" style={{ color: '#39A7C9' }}>
               NEW PLAYER
             </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -715,7 +715,7 @@ export const Roster: React.FC<RosterProps> = ({
           <div
             className="col-span-full py-20 flex flex-col items-center justify-center gap-4 rounded-3xl"
             style={{
-              border: '2px dashed rgba(0,229,255,0.13)',
+              border: '2px dashed rgba(57,167,201,0.13)',
               color: 'rgba(180,220,255,0.45)',
             }}
           >
@@ -748,7 +748,7 @@ export const Roster: React.FC<RosterProps> = ({
                       className="p-2 rounded-lg transition-colors"
                       title="Edit"
                       style={{ color: 'rgba(180,220,255,0.45)' }}
-                      onMouseEnter={(e) => (e.currentTarget.style.color = '#00E5FF')}
+                      onMouseEnter={(e) => (e.currentTarget.style.color = '#39A7C9')}
                       onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(180,220,255,0.45)')}
                     >
                       <Edit2 className="w-4 h-4" />
@@ -758,7 +758,7 @@ export const Roster: React.FC<RosterProps> = ({
                       onClick={() => handleArchiveClick(player)}
                       className="p-2 rounded-lg transition-colors"
                       title={player.isActive ? 'Archive' : 'Restore'}
-                      style={{ color: player.isActive ? 'rgba(180,220,255,0.45)' : '#00E5FF' }}
+                      style={{ color: player.isActive ? 'rgba(180,220,255,0.45)' : '#39A7C9' }}
                     >
                       {player.isActive ? (
                         <Archive className="w-4 h-4" />
@@ -772,7 +772,7 @@ export const Roster: React.FC<RosterProps> = ({
                       className="p-2 rounded-lg transition-colors"
                       title="Delete"
                       style={{ color: 'rgba(180,220,255,0.45)' }}
-                      onMouseEnter={(e) => (e.currentTarget.style.color = '#FF0066')}
+                      onMouseEnter={(e) => (e.currentTarget.style.color = '#D14A3C')}
                       onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(180,220,255,0.45)')}
                     >
                       <Trash2 className="w-4 h-4" />
@@ -784,7 +784,7 @@ export const Roster: React.FC<RosterProps> = ({
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="section-label">8-BALL SL {player.skillLevel8Ball}</span>
-                    <span className="font-mono text-xs" style={{ color: '#00E5FF' }}>
+                    <span className="font-mono text-xs" style={{ color: '#39A7C9' }}>
                       {winRate8}% WIN
                     </span>
                   </div>
@@ -792,23 +792,23 @@ export const Roster: React.FC<RosterProps> = ({
 
                   <div className="flex items-center justify-between mt-1">
                     <span className="section-label">9-BALL SL {player.skillLevel9Ball}</span>
-                    <span className="font-mono text-xs" style={{ color: '#FF0066' }}>
+                    <span className="font-mono text-xs" style={{ color: '#F2C14E' }}>
                       {winRate9}% WIN
                     </span>
                   </div>
-                  <SkillLEDs level={player.skillLevel9Ball} color="magenta" />
+                  <SkillLEDs level={player.skillLevel9Ball} color="gold" />
                 </div>
 
                 {/* Stats footer */}
                 <div
                   className="flex justify-between pt-3"
-                  style={{ borderTop: '1px solid rgba(0,229,255,0.13)' }}
+                  style={{ borderTop: '1px solid rgba(57,167,201,0.13)' }}
                 >
                   <div>
                     <p className="section-label">SEASON WINS</p>
                     <p
                       className="stat-num"
-                      style={{ color: '#00FF88', fontSize: '1.5rem' }}
+                      style={{ color: '#39C46B', fontSize: '1.5rem' }}
                     >
                       {player.wins8Ball + player.wins9Ball}
                     </p>

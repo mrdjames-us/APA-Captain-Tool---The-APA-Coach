@@ -16,7 +16,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onGoogle, onFacebook, lo
       className="absolute inset-0 pointer-events-none"
       style={{
         background:
-          'radial-gradient(ellipse 70% 55% at 50% 45%, rgba(0,229,255,0.07) 0%, transparent 70%)',
+          'radial-gradient(ellipse 70% 55% at 50% 45%, rgba(57,167,201,0.07) 0%, transparent 70%)',
       }}
     />
 
@@ -33,36 +33,36 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onGoogle, onFacebook, lo
         <div
           className="relative w-24 h-24 flex items-center justify-center pulse-ring"
           style={{
-            background: 'rgba(0,229,255,0.06)',
-            border: '1px solid rgba(0,229,255,0.35)',
+            background: 'rgba(57,167,201,0.06)',
+            border: '1px solid rgba(57,167,201,0.35)',
             borderRadius: '4px',
           }}
         >
           <svg viewBox="0 0 48 48" fill="none" className="w-12 h-12">
-            <circle cx="24" cy="16" r="5" fill="#00E5FF" opacity=".9"
-              style={{ filter: 'drop-shadow(0 0 6px #00E5FF)' }} />
-            <circle cx="17" cy="28" r="5" fill="#00E5FF" opacity=".7"
-              style={{ filter: 'drop-shadow(0 0 6px #00E5FF)' }} />
-            <circle cx="31" cy="28" r="5" fill="#00E5FF" opacity=".7"
-              style={{ filter: 'drop-shadow(0 0 6px #00E5FF)' }} />
-            <circle cx="10" cy="40" r="5" fill="#00E5FF" opacity=".5"
-              style={{ filter: 'drop-shadow(0 0 4px #00E5FF)' }} />
-            <circle cx="24" cy="40" r="5" fill="#FFB700" opacity=".9"
-              style={{ filter: 'drop-shadow(0 0 8px #FFB700)' }} />
-            <circle cx="38" cy="40" r="5" fill="#00E5FF" opacity=".5"
-              style={{ filter: 'drop-shadow(0 0 4px #00E5FF)' }} />
+            <circle cx="24" cy="16" r="5" fill="#39A7C9" opacity=".9"
+              style={{ filter: 'drop-shadow(0 0 6px #39A7C9)' }} />
+            <circle cx="17" cy="28" r="5" fill="#39A7C9" opacity=".7"
+              style={{ filter: 'drop-shadow(0 0 6px #39A7C9)' }} />
+            <circle cx="31" cy="28" r="5" fill="#39A7C9" opacity=".7"
+              style={{ filter: 'drop-shadow(0 0 6px #39A7C9)' }} />
+            <circle cx="10" cy="40" r="5" fill="#39A7C9" opacity=".5"
+              style={{ filter: 'drop-shadow(0 0 4px #39A7C9)' }} />
+            <circle cx="24" cy="40" r="5" fill="#F2C14E" opacity=".9"
+              style={{ filter: 'drop-shadow(0 0 8px #F2C14E)' }} />
+            <circle cx="38" cy="40" r="5" fill="#39A7C9" opacity=".5"
+              style={{ filter: 'drop-shadow(0 0 4px #39A7C9)' }} />
           </svg>
           {/* Online dot */}
           <div
             className="absolute -top-1 -right-1 w-3 h-3 rounded-full"
-            style={{ background: '#00FF88', boxShadow: '0 0 8px #00FF88' }}
+            style={{ background: '#39C46B', boxShadow: '0 0 8px #39C46B' }}
           />
         </div>
 
         <div className="text-center">
           <h1
             className="font-orbitron font-black text-5xl tracking-wider text-glow-cyan flicker"
-            style={{ color: '#00E5FF' }}
+            style={{ color: '#39A7C9' }}
           >
             APA
           </h1>
@@ -77,9 +77,9 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onGoogle, onFacebook, lo
 
       {/* Divider */}
       <div className="w-full flex items-center gap-4">
-        <div className="flex-1 h-px" style={{ background: 'rgba(0,229,255,0.15)' }} />
+        <div className="flex-1 h-px" style={{ background: 'rgba(57,167,201,0.15)' }} />
         <span className="section-label opacity-50">AUTHENTICATE</span>
-        <div className="flex-1 h-px" style={{ background: 'rgba(0,229,255,0.15)' }} />
+        <div className="flex-1 h-px" style={{ background: 'rgba(57,167,201,0.15)' }} />
       </div>
 
       {/* Sign-in buttons */}
@@ -88,9 +88,9 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onGoogle, onFacebook, lo
           <div
             className="flex items-center gap-3 px-4 py-3 rounded text-sm"
             style={{
-              background: 'rgba(255,0,102,0.08)',
-              border: '1px solid rgba(255,0,102,0.3)',
-              color: '#FF0066',
+              background: 'rgba(209,74,60,0.08)',
+              border: '1px solid rgba(209,74,60,0.3)',
+              color: '#D14A3C',
             }}
           >
             <AlertCircle className="w-4 h-4 shrink-0" />
@@ -117,18 +117,18 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onGoogle, onFacebook, lo
           className="w-full py-4 rounded flex items-center justify-center gap-3 font-orbitron text-sm font-bold tracking-widest uppercase transition-all"
           style={{
             background: 'transparent',
-            border: '1px solid #FF0066',
-            color: '#FF0066',
-            textShadow: '0 0 10px rgba(255,0,102,0.7)',
-            boxShadow: '0 0 14px rgba(255,0,102,0.2)',
+            border: '1px solid #D14A3C',
+            color: '#D14A3C',
+            textShadow: '0 0 10px rgba(209,74,60,0.7)',
+            boxShadow: '0 0 14px rgba(209,74,60,0.2)',
           }}
           onMouseEnter={e => {
-            (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,0,102,0.12)';
-            (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 0 28px rgba(255,0,102,0.45)';
+            (e.currentTarget as HTMLButtonElement).style.background = 'rgba(209,74,60,0.12)';
+            (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 0 28px rgba(209,74,60,0.45)';
           }}
           onMouseLeave={e => {
             (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
-            (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 0 14px rgba(255,0,102,0.2)';
+            (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 0 14px rgba(209,74,60,0.2)';
           }}
         >
           <Facebook className="w-5 h-5" />
@@ -136,7 +136,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onGoogle, onFacebook, lo
         </button>
       </div>
 
-      <p className="text-center font-mono text-xs" style={{ color: 'rgba(208,232,255,0.25)' }}>
+      <p className="text-center font-mono text-xs" style={{ color: 'rgba(239,231,214,0.25)' }}>
         No account needed · Your data stays yours
       </p>
     </div>

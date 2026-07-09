@@ -13,24 +13,24 @@ interface DashboardProps {
   onWeekChange?: (w: number) => void;
 }
 
-const CYAN    = '#00E5FF';
-const MAGENTA = '#FF0066';
-const GREEN   = '#00FF88';
+const CYAN    = '#39A7C9';
+const NINE = '#F2C14E';
+const GREEN   = '#39C46B';
 
 // ── Custom tooltip ─────────────────────────────────────────────────────────────
 const NeonTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null;
   return (
     <div style={{
-      background: 'rgba(0,0,8,0.97)',
-      border: '1px solid rgba(0,229,255,0.35)',
+      background: 'rgba(10,31,23,0.97)',
+      border: '1px solid rgba(57,167,201,0.35)',
       borderRadius: 8,
       padding: '10px 14px',
       fontSize: 11,
-      boxShadow: '0 0 20px rgba(0,229,255,0.18)',
+      boxShadow: '0 0 20px rgba(57,167,201,0.18)',
     }}>
       <p style={{
-        color: 'rgba(208,232,255,0.55)',
+        color: 'rgba(239,231,214,0.55)',
         marginBottom: 6,
         fontWeight: 700,
         textTransform: 'uppercase',
@@ -54,8 +54,8 @@ const LedBar: React.FC<{ label: string; count: number }> = ({ label, count }) =>
   const qualified = count >= 4;
   const litColor = qualified ? GREEN : CYAN;
   const litShadow = qualified
-    ? '0 0 6px #00FF88, 0 0 12px rgba(0,255,136,0.5)'
-    : '0 0 6px #00E5FF, 0 0 12px rgba(0,229,255,0.5)';
+    ? '0 0 6px #39C46B, 0 0 12px rgba(57,196,107,0.5)'
+    : '0 0 6px #39A7C9, 0 0 12px rgba(57,167,201,0.5)';
 
   return (
     <div>
@@ -131,7 +131,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
     { name: '8-Ball', value: total8Ball },
     { name: '9-Ball', value: total9Ball },
   ];
-  const PIE_COLORS = [CYAN, MAGENTA];
+  const PIE_COLORS = [CYAN, NINE];
 
   return (
     <div className="space-y-8 pb-20">
@@ -150,7 +150,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           >
             COMMAND BOARD
           </h2>
-          <p className="section-label mt-2" style={{ color: 'rgba(0,229,255,0.82)' }}>
+          <p className="section-label mt-2" style={{ color: 'rgba(57,167,201,0.82)' }}>
             Tactical deployment &amp; mission readiness
           </p>
         </div>
@@ -164,12 +164,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <p className="section-label mb-1">Season Progress</p>
             <div className="flex items-center gap-2">
               <Zap style={{ width: 14, height: 14, color: CYAN }} />
-              <span style={{ fontFamily: 'Space Mono, monospace', color: '#D0E8FF', fontSize: 15, fontWeight: 700 }}>
+              <span style={{ fontFamily: 'Space Mono, monospace', color: '#EFE7D6', fontSize: 15, fontWeight: 700 }}>
                 Week{' '}
-                <span className="font-mono" style={{ color: CYAN, textShadow: '0 0 10px rgba(0,229,255,0.9)' }}>
+                <span className="font-mono" style={{ color: CYAN, textShadow: '0 0 10px rgba(57,167,201,0.9)' }}>
                   {currentWeek}
                 </span>
-                <span style={{ color: 'rgba(208,232,255,0.3)', fontSize: 12 }}> / 16</span>
+                <span style={{ color: 'rgba(239,231,214,0.3)', fontSize: 12 }}> / 16</span>
               </span>
             </div>
 
@@ -179,7 +179,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 marginTop: 8,
                 width: 140,
                 height: 2,
-                background: 'rgba(0,229,255,0.1)',
+                background: 'rgba(57,167,201,0.1)',
                 borderRadius: 2,
                 overflow: 'hidden',
               }}
@@ -189,7 +189,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   height: '100%',
                   width: `${progressPct}%`,
                   background: CYAN,
-                  boxShadow: `0 0 8px ${CYAN}, 0 0 16px rgba(0,229,255,0.4)`,
+                  boxShadow: `0 0 8px ${CYAN}, 0 0 16px rgba(57,167,201,0.4)`,
                   borderRadius: 2,
                   transition: 'width 0.5s ease',
                 }}
@@ -227,7 +227,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <Target style={{ width: 20, height: 20, color: CYAN }} />
             <h3
               className="font-orbitron"
-              style={{ fontSize: 15, fontWeight: 800, color: '#D0E8FF', letterSpacing: '0.1em' }}
+              style={{ fontSize: 15, fontWeight: 800, color: '#EFE7D6', letterSpacing: '0.1em' }}
             >
               PLAYOFF ELIGIBILITY
             </h3>
@@ -236,9 +236,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 fontFamily: 'Orbitron, sans-serif',
                 fontSize: 8,
                 letterSpacing: '0.15em',
-                color: MAGENTA,
-                textShadow: '0 0 8px rgba(255,0,102,0.8)',
-                border: '1px solid rgba(255,0,102,0.4)',
+                color: '#D14A3C',
+                textShadow: '0 0 8px rgba(209,74,60,0.8)',
+                border: '1px solid rgba(209,74,60,0.4)',
                 borderRadius: 4,
                 padding: '2px 7px',
                 textTransform: 'uppercase',
@@ -254,15 +254,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
             style={{ padding: '10px 20px', minWidth: 100 }}
           >
             <p className="section-label mb-1">Qualified</p>
-            <p style={{ fontFamily: 'Space Mono, monospace', fontSize: 22, fontWeight: 700, color: '#D0E8FF' }}>
-              <span style={{ color: CYAN, textShadow: '0 0 10px rgba(0,229,255,0.8)' }}>{qualifiedCount}</span>
-              <span style={{ color: 'rgba(208,232,255,0.25)', fontSize: 14 }}> / {players.length}</span>
+            <p style={{ fontFamily: 'Space Mono, monospace', fontSize: 22, fontWeight: 700, color: '#EFE7D6' }}>
+              <span style={{ color: CYAN, textShadow: '0 0 10px rgba(57,167,201,0.8)' }}>{qualifiedCount}</span>
+              <span style={{ color: 'rgba(239,231,214,0.25)', fontSize: 14 }}> / {players.length}</span>
             </p>
           </div>
         </div>
 
         {players.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '40px 0', color: 'rgba(208,232,255,0.3)' }}>
+          <div style={{ textAlign: 'center', padding: '40px 0', color: 'rgba(239,231,214,0.3)' }}>
             <p className="section-label">No players in roster</p>
           </div>
         )}
@@ -272,10 +272,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
             className="rounded-2xl flex flex-col items-center justify-center"
             style={{
               padding: '36px 20px',
-              border: '1px solid rgba(0,255,136,0.3)',
-              background: 'rgba(0,255,136,0.04)',
+              border: '1px solid rgba(57,196,107,0.3)',
+              background: 'rgba(57,196,107,0.04)',
               textAlign: 'center',
-              boxShadow: '0 0 30px rgba(0,255,136,0.08)',
+              boxShadow: '0 0 30px rgba(57,196,107,0.08)',
             }}
           >
             <CheckCircle2 style={{ width: 44, height: 44, color: GREEN, marginBottom: 12 }} />
@@ -285,13 +285,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 fontSize: 18,
                 fontWeight: 900,
                 color: GREEN,
-                textShadow: '0 0 18px rgba(0,255,136,0.9), 0 0 40px rgba(0,255,136,0.4)',
+                textShadow: '0 0 18px rgba(57,196,107,0.9), 0 0 40px rgba(57,196,107,0.4)',
                 letterSpacing: '0.12em',
               }}
             >
               FULL READINESS
             </h4>
-            <p className="section-label mt-2" style={{ color: 'rgba(0,255,136,0.6)' }}>
+            <p className="section-label mt-2" style={{ color: 'rgba(57,196,107,0.6)' }}>
               All operators meet eligibility criteria
             </p>
           </div>
@@ -306,10 +306,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 style={{ padding: '18px 20px' }}
               >
                 <div className="flex justify-between items-start mb-4">
-                  <p style={{ fontWeight: 700, fontSize: 13, color: '#D0E8FF', letterSpacing: '0.04em' }}>
+                  <p style={{ fontWeight: 700, fontSize: 13, color: '#EFE7D6', letterSpacing: '0.04em' }}>
                     {player.name}
                   </p>
-                  <AlertTriangle style={{ width: 14, height: 14, color: '#FFB700', flexShrink: 0 }} />
+                  <AlertTriangle style={{ width: 14, height: 14, color: '#F2C14E', flexShrink: 0 }} />
                 </div>
                 <div className="flex flex-col gap-4">
                   <LedBar label="8-Ball" count={player.games8Ball} />
@@ -330,7 +330,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <div style={{ width: 3, height: 22, background: CYAN, borderRadius: 2, boxShadow: `0 0 8px ${CYAN}` }} />
             <h4
               className="font-orbitron"
-              style={{ fontSize: 11, fontWeight: 800, color: '#D0E8FF', letterSpacing: '0.12em' }}
+              style={{ fontSize: 11, fontWeight: 800, color: '#EFE7D6', letterSpacing: '0.12em' }}
             >
               MATCH ACTIVITY
             </h4>
@@ -340,10 +340,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
             {chartData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData} barGap={3}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,229,255,0.06)" vertical={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(57,167,201,0.06)" vertical={false} />
                   <XAxis
                     dataKey="name"
-                    stroke="rgba(208,232,255,0.25)"
+                    stroke="rgba(239,231,214,0.25)"
                     fontSize={10}
                     fontWeight={700}
                     tickLine={false}
@@ -351,29 +351,29 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     style={{ fontFamily: 'Space Mono, monospace' }}
                   />
                   <YAxis
-                    stroke="rgba(208,232,255,0.25)"
+                    stroke="rgba(239,231,214,0.25)"
                     fontSize={10}
                     tickLine={false}
                     axisLine={false}
                     style={{ fontFamily: 'Space Mono, monospace' }}
                   />
-                  <Tooltip content={<NeonTooltip />} cursor={{ fill: 'rgba(0,229,255,0.04)' }} />
+                  <Tooltip content={<NeonTooltip />} cursor={{ fill: 'rgba(57,167,201,0.04)' }} />
                   <Bar dataKey="8-Ball" fill={CYAN}    radius={[3, 3, 0, 0]} barSize={14} />
-                  <Bar dataKey="9-Ball" fill={MAGENTA} radius={[3, 3, 0, 0]} barSize={14} />
+                  <Bar dataKey="9-Ball" fill={NINE} radius={[3, 3, 0, 0]} barSize={14} />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
               <div className="flex items-center justify-center h-full">
-                <p className="section-label" style={{ color: 'rgba(208,232,255,0.6)' }}>No match data yet</p>
+                <p className="section-label" style={{ color: 'rgba(239,231,214,0.6)' }}>No match data yet</p>
               </div>
             )}
           </div>
 
           <div className="flex gap-6 mt-4 justify-center">
-            {[{ label: '8-Ball', color: CYAN }, { label: '9-Ball', color: MAGENTA }].map(({ label, color }) => (
+            {[{ label: '8-Ball', color: CYAN }, { label: '9-Ball', color: NINE }].map(({ label, color }) => (
               <div key={label} className="flex items-center gap-2">
                 <div style={{ width: 8, height: 8, borderRadius: 2, background: color, boxShadow: `0 0 6px ${color}` }} />
-                <span className="section-label" style={{ color: 'rgba(208,232,255,0.8)' }}>{label}</span>
+                <span className="section-label" style={{ color: 'rgba(239,231,214,0.8)' }}>{label}</span>
               </div>
             ))}
           </div>
@@ -382,10 +382,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
         {/* Squad Deployment donut */}
         <div className="card rounded-3xl" style={{ padding: '24px 24px 20px' }}>
           <div className="flex items-center gap-3 mb-6">
-            <div style={{ width: 3, height: 22, background: MAGENTA, borderRadius: 2, boxShadow: `0 0 8px ${MAGENTA}` }} />
+            <div style={{ width: 3, height: 22, background: NINE, borderRadius: 2, boxShadow: `0 0 8px ${NINE}` }} />
             <h4
               className="font-orbitron"
-              style={{ fontSize: 11, fontWeight: 800, color: '#D0E8FF', letterSpacing: '0.12em' }}
+              style={{ fontSize: 11, fontWeight: 800, color: '#EFE7D6', letterSpacing: '0.12em' }}
             >
               SQUAD DEPLOYMENT
             </h4>
@@ -415,8 +415,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   </Pie>
                   <Tooltip
                     contentStyle={{
-                      backgroundColor: 'rgba(0,0,8,0.97)',
-                      border: '1px solid rgba(0,229,255,0.3)',
+                      backgroundColor: 'rgba(10,31,23,0.97)',
+                      border: '1px solid rgba(57,167,201,0.3)',
                       borderRadius: 8,
                       fontSize: 11,
                       fontFamily: 'Space Mono, monospace',
@@ -441,7 +441,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               </ResponsiveContainer>
             ) : (
               <div className="flex items-center justify-center h-full">
-                <p className="section-label" style={{ color: 'rgba(208,232,255,0.6)' }}>No deployment data</p>
+                <p className="section-label" style={{ color: 'rgba(239,231,214,0.6)' }}>No deployment data</p>
               </div>
             )}
           </div>

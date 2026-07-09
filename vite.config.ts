@@ -8,6 +8,14 @@ export default defineConfig(({ mode }) => {
     server: {
       port: 3000,
       host: '0.0.0.0',
+      // Local dev: proxy /api/apa/* to the Express mirror (npm run dev:full).
+      // In production these paths are served by Cloudflare Pages Functions.
+      proxy: {
+        '/api': {
+          target: 'http://localhost:3001',
+          changeOrigin: true,
+        },
+      },
     },
     plugins: [react()],
     define: {
