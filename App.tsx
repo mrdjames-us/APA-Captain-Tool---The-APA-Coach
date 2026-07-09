@@ -98,7 +98,7 @@ const App: React.FC = () => {
     return (
       <div className="min-h-screen grid-bg flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="w-10 h-10 animate-spin" style={{ color: '#00E5FF' }} />
+          <Loader2 className="w-10 h-10 animate-spin" style={{ color: '#39A7C9' }} />
           <p className="section-label opacity-60">INITIALISING</p>
         </div>
       </div>

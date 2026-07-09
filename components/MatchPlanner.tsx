@@ -76,7 +76,7 @@ export const MatchPlanner: React.FC<MatchPlannerProps> = ({
 
   const is8 = format === 'EIGHT';
   const gameType = is8 ? GameType.EIGHT_BALL : GameType.NINE_BALL;
-  const accent = is8 ? '#00E5FF' : '#FF0066';
+  const accent = is8 ? '#39A7C9' : '#F2C14E'; // 8-ball chalk blue, 9-ball gold
 
   // Pull the opponent's roster for this match when we know their team id.
   useEffect(() => {
@@ -163,26 +163,26 @@ export const MatchPlanner: React.FC<MatchPlannerProps> = ({
           <h2 className="font-orbitron font-black text-2xl md:text-3xl tracking-wider text-glow-cyan" style={{ color: accent }}>
             MATCH PLANNER
           </h2>
-          <p className="text-sm mt-1" style={{ color: 'rgba(208,232,255,0.78)' }}>
+          <p className="text-sm mt-1" style={{ color: 'rgba(239,231,214,0.78)' }}>
             Rule of 23 · {is8 ? '8-Ball' : '9-Ball'} match
           </p>
         </div>
         <div className="flex flex-wrap gap-3">
           {/* Format toggle */}
-          <div className="flex rounded overflow-hidden" style={{ border: '1px solid rgba(208,232,255,0.25)' }}>
+          <div className="flex rounded overflow-hidden" style={{ border: '1px solid rgba(239,231,214,0.25)' }}>
             {(['EIGHT', 'NINE'] as const).map(f => (
               <button key={f} onClick={() => setFormat(f)}
                 className="px-4 py-2.5 text-xs font-orbitron font-bold uppercase tracking-widest transition-all"
                 style={format === f
-                  ? { background: f === 'EIGHT' ? '#00E5FF' : '#FF0066', color: '#00020e' }
-                  : { background: 'transparent', color: 'rgba(208,232,255,0.7)' }}>
+                  ? { background: f === 'EIGHT' ? '#39A7C9' : '#F2C14E', color: '#0A1F17' }
+                  : { background: 'transparent', color: 'rgba(239,231,214,0.7)' }}>
                 {f === 'EIGHT' ? '8-Ball' : '9-Ball'}
               </button>
             ))}
           </div>
           <button onClick={saveProgress}
             className="btn-neon flex items-center gap-2 px-5 py-2.5 rounded text-xs font-bold uppercase tracking-widest"
-            style={saved ? { borderColor: '#00FF88', color: '#00FF88' } : undefined}>
+            style={saved ? { borderColor: '#39C46B', color: '#39C46B' } : undefined}>
             {saved ? <CheckCircle2 className="w-4 h-4" /> : <CloudUpload className="w-4 h-4" />}
             {saved ? 'SAVED' : 'SAVE STATE'}
           </button>
@@ -208,7 +208,7 @@ export const MatchPlanner: React.FC<MatchPlannerProps> = ({
         {/* Opponent roster status */}
         <div className="mt-3 text-xs flex items-center gap-2">
           {loadingOpp ? (
-            <span style={{ color: 'rgba(0,229,255,0.8)', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ color: 'rgba(57,167,201,0.8)', display: 'flex', alignItems: 'center', gap: 6 }}>
               <Loader2 className="w-3.5 h-3.5 animate-spin" /> Loading opponent roster from poolplayers.com…
             </span>
           ) : oppError ? (
@@ -220,7 +220,7 @@ export const MatchPlanner: React.FC<MatchPlannerProps> = ({
               <Users2 className="w-3.5 h-3.5" /> Opponent roster loaded — pick who they put up and skill levels fill in.
             </span>
           ) : (
-            <span style={{ color: 'rgba(208,232,255,0.5)', display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ color: 'rgba(239,231,214,0.5)', display: 'flex', alignItems: 'center', gap: 6 }}>
               <Globe className="w-3.5 h-3.5" /> Plan a match from the Schedule tab to auto-load the opponent's players.
             </span>
           )}
@@ -229,12 +229,12 @@ export const MatchPlanner: React.FC<MatchPlannerProps> = ({
 
       {/* Budget meter */}
       <div className="card rounded p-5 transition-all"
-        style={over ? { borderColor: '#FF0066', boxShadow: '0 0 20px rgba(255,0,102,0.2)' } : undefined}>
+        style={over ? { borderColor: '#D14A3C', boxShadow: '0 0 20px rgba(209,74,60,0.2)' } : undefined}>
         <p className="section-label mb-2">{is8 ? '8-Ball' : '9-Ball'} Skill Budget</p>
         <div className="flex items-baseline gap-2">
-          <span className="stat-num" style={{ color: over ? '#FF0066' : '#D0E8FF' }}>{skillTotal}</span>
-          <span className="font-mono text-lg" style={{ color: 'rgba(208,232,255,0.65)' }}>/ {CAP}</span>
-          {over && <span className="section-label animate-pulse" style={{ color: '#FF0066' }}>OVER CAP</span>}
+          <span className="stat-num" style={{ color: over ? '#D14A3C' : '#EFE7D6' }}>{skillTotal}</span>
+          <span className="font-mono text-lg" style={{ color: 'rgba(239,231,214,0.65)' }}>/ {CAP}</span>
+          {over && <span className="section-label animate-pulse" style={{ color: '#D14A3C' }}>OVER CAP</span>}
         </div>
       </div>
 
@@ -247,7 +247,7 @@ export const MatchPlanner: React.FC<MatchPlannerProps> = ({
           return (
             <div key={idx} className="card rounded p-4 space-y-3">
               <div className="flex items-center gap-3 flex-wrap">
-                <span className="font-mono text-xs w-6 shrink-0" style={{ color: 'rgba(208,232,255,0.65)' }}>
+                <span className="font-mono text-xs w-6 shrink-0" style={{ color: 'rgba(239,231,214,0.65)' }}>
                   {String(idx + 1).padStart(2, '0')}
                 </span>
                 {/* Your player */}
@@ -265,7 +265,7 @@ export const MatchPlanner: React.FC<MatchPlannerProps> = ({
                   ))}
                 </select>
 
-                <span className="font-mono text-xs shrink-0" style={{ color: 'rgba(208,232,255,0.4)' }}>vs</span>
+                <span className="font-mono text-xs shrink-0" style={{ color: 'rgba(239,231,214,0.4)' }}>vs</span>
 
                 {/* Opponent: real roster dropdown, or manual SL fallback */}
                 {usesOpponentRoster ? (
@@ -273,7 +273,7 @@ export const MatchPlanner: React.FC<MatchPlannerProps> = ({
                     value={oppAssignments[idx] || ''}
                     onChange={e => pickOpponent(idx, e.target.value)}
                     className="input-neon flex-1 min-w-[160px] px-3 py-2 text-sm font-bold rounded"
-                    style={{ borderColor: 'rgba(255,0,102,0.35)' }}
+                    style={{ borderColor: 'rgba(209,74,60,0.35)' }}
                   >
                     <option value="">— Opponent —</option>
                     {oppRoster!.map(op => (
@@ -285,7 +285,7 @@ export const MatchPlanner: React.FC<MatchPlannerProps> = ({
                   </select>
                 ) : (
                   <div className="flex items-center gap-2 shrink-0">
-                    <span className="section-label" style={{ color: 'rgba(208,232,255,0.75)' }}>Opp SL</span>
+                    <span className="section-label" style={{ color: 'rgba(239,231,214,0.75)' }}>Opp SL</span>
                     <select
                       value={oppSkills[idx]}
                       onChange={e => { const s = [...oppSkills]; s[idx] = Number(e.target.value) as SkillLevel; setOppSkills(s); }}
@@ -301,15 +301,15 @@ export const MatchPlanner: React.FC<MatchPlannerProps> = ({
                 <button onClick={() => { const r = [...results]; r[idx] = win ? null : 'Win'; setResults(r); }}
                   className="px-3 py-1.5 rounded text-xs font-orbitron font-bold transition-all"
                   style={win
-                    ? { background: 'rgba(0,255,136,0.15)', border: '1px solid #00FF88', color: '#00FF88' }
-                    : { background: 'transparent', border: '1px solid rgba(208,232,255,0.3)', color: 'rgba(208,232,255,0.7)' }}>
+                    ? { background: 'rgba(57,196,107,0.15)', border: '1px solid #39C46B', color: '#39C46B' }
+                    : { background: 'transparent', border: '1px solid rgba(239,231,214,0.3)', color: 'rgba(239,231,214,0.7)' }}>
                   W
                 </button>
                 <button onClick={() => { const r = [...results]; r[idx] = loss ? null : 'Loss'; setResults(r); }}
                   className="px-3 py-1.5 rounded text-xs font-orbitron font-bold transition-all"
                   style={loss
-                    ? { background: 'rgba(255,0,102,0.15)', border: '1px solid #FF0066', color: '#FF0066' }
-                    : { background: 'transparent', border: '1px solid rgba(208,232,255,0.3)', color: 'rgba(208,232,255,0.7)' }}>
+                    ? { background: 'rgba(209,74,60,0.15)', border: '1px solid #D14A3C', color: '#D14A3C' }
+                    : { background: 'transparent', border: '1px solid rgba(239,231,214,0.3)', color: 'rgba(239,231,214,0.7)' }}>
                   L
                 </button>
               </div>
@@ -327,10 +327,10 @@ export const MatchPlanner: React.FC<MatchPlannerProps> = ({
           </button>
         ) : (
           <div className="card rounded p-8 flex flex-col items-center gap-6 shadow-2xl"
-            style={{ border: '1px solid rgba(0,229,255,0.4)' }}>
+            style={{ border: '1px solid rgba(57,167,201,0.4)' }}>
             <div className="text-center">
               <h4 className="font-orbitron font-black text-lg text-white">CONFIRM RESULTS?</h4>
-              <p className="text-xs mt-2" style={{ color: 'rgba(208,232,255,0.75)' }}>Records {is8 ? '8-ball' : '9-ball'} stats · clears match state</p>
+              <p className="text-xs mt-2" style={{ color: 'rgba(239,231,214,0.75)' }}>Records {is8 ? '8-ball' : '9-ball'} stats · clears match state</p>
             </div>
             <div className="flex gap-4 w-full">
               <button onClick={finalizeMatch}
@@ -339,7 +339,7 @@ export const MatchPlanner: React.FC<MatchPlannerProps> = ({
               </button>
               <button onClick={() => setShowConfirm(false)}
                 className="flex-1 py-3 rounded font-orbitron text-xs font-bold uppercase tracking-widest transition-all"
-                style={{ border: '1px solid rgba(208,232,255,0.35)', color: 'rgba(208,232,255,0.75)' }}>
+                style={{ border: '1px solid rgba(239,231,214,0.35)', color: 'rgba(239,231,214,0.75)' }}>
                 CANCEL
               </button>
             </div>

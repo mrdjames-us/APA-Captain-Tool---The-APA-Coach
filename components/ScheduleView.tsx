@@ -123,20 +123,20 @@ const PreviewTable: React.FC<PreviewTableProps> = ({ entries, selected, onToggle
     <div className="overflow-x-auto" style={{ maxHeight: '260px', overflowY: 'auto' }}>
       <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
         <thead>
-          <tr style={{ borderBottom: '1px solid #00E5FF44' }}>
+          <tr style={{ borderBottom: '1px solid #39A7C944' }}>
             <th style={{ padding: '6px 8px', textAlign: 'left' }}>
               <input
                 type="checkbox"
                 checked={allChecked}
                 onChange={onToggleAll}
-                style={{ accentColor: '#00E5FF' }}
+                style={{ accentColor: '#39A7C9' }}
               />
             </th>
             {['Date', 'Opponent', 'Location', 'H/A'].map(h => (
               <th
                 key={h}
                 className="section-label"
-                style={{ padding: '6px 8px', textAlign: 'left', color: '#00E5FF', fontSize: '10px' }}
+                style={{ padding: '6px 8px', textAlign: 'left', color: '#39A7C9', fontSize: '10px' }}
               >
                 {h}
               </th>
@@ -149,7 +149,7 @@ const PreviewTable: React.FC<PreviewTableProps> = ({ entries, selected, onToggle
               key={i}
               style={{
                 borderBottom: '1px solid #ffffff10',
-                background: selected.has(i) ? '#00E5FF0A' : 'transparent',
+                background: selected.has(i) ? '#39A7C90A' : 'transparent',
               }}
             >
               <td style={{ padding: '6px 8px' }}>
@@ -157,7 +157,7 @@ const PreviewTable: React.FC<PreviewTableProps> = ({ entries, selected, onToggle
                   type="checkbox"
                   checked={selected.has(i)}
                   onChange={() => onToggle(i)}
-                  style={{ accentColor: '#00E5FF' }}
+                  style={{ accentColor: '#39A7C9' }}
                 />
               </td>
               <td className="font-mono" style={{ padding: '6px 8px', color: '#e0e0e0', whiteSpace: 'nowrap' }}>
@@ -169,9 +169,9 @@ const PreviewTable: React.FC<PreviewTableProps> = ({ entries, selected, onToggle
               <td style={{ padding: '6px 8px', color: '#aaa' }}>{e.location ?? '—'}</td>
               <td style={{ padding: '6px 8px' }}>
                 {e.isHome ? (
-                  <span style={{ color: '#00E5FF', fontSize: '10px', fontWeight: 700 }}>HOME</span>
+                  <span style={{ color: '#39A7C9', fontSize: '10px', fontWeight: 700 }}>HOME</span>
                 ) : (
-                  <span style={{ color: '#FF0066', fontSize: '10px', fontWeight: 700 }}>AWAY</span>
+                  <span style={{ color: '#D14A3C', fontSize: '10px', fontWeight: 700 }}>AWAY</span>
                 )}
               </td>
             </tr>
@@ -208,7 +208,7 @@ const Modal: React.FC<{ title: string; onClose: () => void; children: React.Reac
         maxWidth: '680px',
         maxHeight: '90vh',
         overflowY: 'auto',
-        border: '1px solid #00E5FF55',
+        border: '1px solid #39A7C955',
         position: 'relative',
       }}
     >
@@ -218,7 +218,7 @@ const Modal: React.FC<{ title: string; onClose: () => void; children: React.Reac
         </h3>
         <button
           onClick={onClose}
-          style={{ color: '#FF0066', background: 'none', border: 'none', cursor: 'pointer', fontSize: '20px', lineHeight: 1 }}
+          style={{ color: '#D14A3C', background: 'none', border: 'none', cursor: 'pointer', fontSize: '20px', lineHeight: 1 }}
         >
           ×
         </button>
@@ -302,14 +302,14 @@ const ScreenshotModal: React.FC<ScreenshotModalProps> = ({ onClose, onImport }) 
         onDrop={handleDrop}
         className="card"
         style={{
-          border: `2px dashed ${dragOver ? '#FFB700' : '#00E5FF66'}`,
+          border: `2px dashed ${dragOver ? '#F2C14E' : '#39A7C966'}`,
           borderRadius: '10px',
           padding: '32px 16px',
           textAlign: 'center',
           cursor: 'pointer',
           marginBottom: '20px',
           transition: 'border-color 0.2s',
-          background: dragOver ? '#FFB70008' : '#00E5FF04',
+          background: dragOver ? '#F2C14E08' : '#39A7C904',
         }}
       >
         <input
@@ -319,8 +319,8 @@ const ScreenshotModal: React.FC<ScreenshotModalProps> = ({ onClose, onImport }) 
           style={{ display: 'none' }}
           onChange={handleFileChange}
         />
-        <Image style={{ width: 36, height: 36, margin: '0 auto 12px', color: '#00E5FF' }} />
-        <p style={{ color: '#00E5FF', fontSize: '13px', fontWeight: 600 }}>
+        <Image style={{ width: 36, height: 36, margin: '0 auto 12px', color: '#39A7C9' }} />
+        <p style={{ color: '#39A7C9', fontSize: '13px', fontWeight: 600 }}>
           Drop schedule screenshot here or click to browse
         </p>
         <p style={{ color: '#666', fontSize: '11px', marginTop: 4 }}>PNG, JPG, WEBP accepted</p>
@@ -328,7 +328,7 @@ const ScreenshotModal: React.FC<ScreenshotModalProps> = ({ onClose, onImport }) 
 
       {/* Loading */}
       {loading && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#00E5FF', marginBottom: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: '#39A7C9', marginBottom: 16 }}>
           <Loader2 style={{ width: 18, height: 18, animation: 'spin 1s linear infinite' }} />
           <span style={{ fontSize: 13 }}>Analyzing screenshot with AI…</span>
         </div>
@@ -336,7 +336,7 @@ const ScreenshotModal: React.FC<ScreenshotModalProps> = ({ onClose, onImport }) 
 
       {/* Error */}
       {error && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#FF0066', marginBottom: 16, fontSize: 13 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: '#D14A3C', marginBottom: 16, fontSize: 13 }}>
           <AlertCircle style={{ width: 16, height: 16, flexShrink: 0 }} />
           {error}
         </div>
@@ -387,21 +387,21 @@ const EntryCard: React.FC<EntryCardProps> = ({ entry, dimmed, onDelete, onPlanMa
         flexDirection: 'column',
         gap: 6,
         padding: '14px 16px',
-        border: dimmed ? '1px solid #ffffff15' : '1px solid #00E5FF33',
+        border: dimmed ? '1px solid #ffffff15' : '1px solid #39A7C933',
         transition: 'opacity 0.2s',
       }}
     >
       {/* Top row: date + badges */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 6 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Calendar style={{ width: 14, height: 14, color: dimmed ? '#555' : '#00E5FF', flexShrink: 0 }} />
+          <Calendar style={{ width: 14, height: 14, color: dimmed ? '#555' : '#39A7C9', flexShrink: 0 }} />
           <span
             className="font-mono"
-            style={{ fontSize: 12, color: dimmed ? '#555' : '#00E5FF', letterSpacing: '0.04em' }}
+            style={{ fontSize: 12, color: dimmed ? '#555' : '#39A7C9', letterSpacing: '0.04em' }}
           >
             {formatDate(entry.date)}
             {formatTime(entry.date) && (
-              <span style={{ color: dimmed ? '#444' : 'rgba(0,229,255,0.55)', marginLeft: 6, fontSize: 11 }}>
+              <span style={{ color: dimmed ? '#444' : 'rgba(57,167,201,0.55)', marginLeft: 6, fontSize: 11 }}>
                 {formatTime(entry.date)}
               </span>
             )}
@@ -427,8 +427,8 @@ const EntryCard: React.FC<EntryCardProps> = ({ entry, dimmed, onDelete, onPlanMa
               style={{
                 fontSize: 10,
                 fontWeight: 700,
-                color: '#00E5FF',
-                border: '1px solid #00E5FF55',
+                color: '#39A7C9',
+                border: '1px solid #39A7C955',
                 borderRadius: 4,
                 padding: '2px 7px',
                 letterSpacing: '0.08em',
@@ -441,8 +441,8 @@ const EntryCard: React.FC<EntryCardProps> = ({ entry, dimmed, onDelete, onPlanMa
               style={{
                 fontSize: 10,
                 fontWeight: 700,
-                color: '#FF0066',
-                border: '1px solid #FF006655',
+                color: '#D14A3C',
+                border: '1px solid #D14A3C55',
                 borderRadius: 4,
                 padding: '2px 7px',
                 letterSpacing: '0.08em',
@@ -458,8 +458,8 @@ const EntryCard: React.FC<EntryCardProps> = ({ entry, dimmed, onDelete, onPlanMa
               style={{
                 fontSize: 10,
                 fontWeight: 700,
-                color: '#00ff88',
-                border: '1px solid #00ff8855',
+                color: '#39C46B',
+                border: '1px solid #39C46B55',
                 borderRadius: 4,
                 padding: '2px 7px',
                 display: 'flex',
@@ -484,7 +484,7 @@ const EntryCard: React.FC<EntryCardProps> = ({ entry, dimmed, onDelete, onPlanMa
       {entry.isScored && entry.myPoints != null && entry.oppPoints != null && (() => {
         const won = entry.myPoints > entry.oppPoints;
         const tie = entry.myPoints === entry.oppPoints;
-        const color = tie ? '#FFB700' : won ? '#00ff88' : '#FF0066';
+        const color = tie ? '#F2C14E' : won ? '#39C46B' : '#D14A3C';
         return (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13 }}>
             <span style={{ fontWeight: 800, color, letterSpacing: '0.06em' }}>
@@ -531,7 +531,7 @@ const EntryCard: React.FC<EntryCardProps> = ({ entry, dimmed, onDelete, onPlanMa
             cursor: 'pointer',
             padding: '4px 6px',
             borderRadius: 6,
-            color: deleteHover ? '#FF0066' : '#555',
+            color: deleteHover ? '#D14A3C' : '#555',
             transition: 'color 0.15s',
           }}
           title="Delete entry"
@@ -559,7 +559,7 @@ const ImportToolbar: React.FC<ImportToolbarProps> = ({ onScreenshot, onApaSync, 
         className="btn-solid-cyan"
         onClick={onApaSync}
         disabled={syncing}
-        style={{ display: 'flex', alignItems: 'center', gap: 7, boxShadow: '0 0 12px #00E5FF88' }}
+        style={{ display: 'flex', alignItems: 'center', gap: 7, boxShadow: '0 0 12px #39A7C988' }}
       >
         {syncing
           ? <Loader2 style={{ width: 14, height: 14, animation: 'spin 1s linear infinite' }} />
@@ -649,21 +649,21 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
           <h2
             className="font-orbitron text-glow-cyan"
-            style={{ fontSize: '26px', letterSpacing: '0.16em', color: '#00E5FF' }}
+            style={{ fontSize: '26px', letterSpacing: '0.16em', color: '#39A7C9' }}
           >
             SCHEDULE
           </h2>
           {upcomingCount > 0 && (
             <span
               style={{
-                background: '#FFB700',
+                background: '#F2C14E',
                 color: '#000',
                 fontWeight: 900,
                 fontSize: 11,
                 borderRadius: 20,
                 padding: '3px 10px',
                 letterSpacing: '0.06em',
-                boxShadow: '0 0 10px #FFB70088',
+                boxShadow: '0 0 10px #F2C14E88',
               }}
             >
               {upcomingCount} UPCOMING
@@ -681,7 +681,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
 
       {/* ── APA sync hint / status ── */}
       {apaConnected && activeTeam && (
-        <div style={{ marginBottom: 16, fontSize: 12, color: 'rgba(0,229,255,0.7)', display: 'flex', alignItems: 'center', gap: 6 }}>
+        <div style={{ marginBottom: 16, fontSize: 12, color: 'rgba(57,167,201,0.7)', display: 'flex', alignItems: 'center', gap: 6 }}>
           <RefreshCw style={{ width: 12, height: 12 }} />
           Active team: <strong style={{ color: '#fff' }}>{activeTeam.name}</strong>. Switch teams in the APA Sync tab, then sync again to add another team's matches.
         </div>
@@ -691,8 +691,8 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
           style={{
             marginBottom: 16, padding: '10px 14px', borderRadius: 6, fontSize: 13,
             display: 'flex', alignItems: 'center', gap: 8,
-            background: syncMsg.ok ? 'rgba(0,255,136,0.07)' : 'rgba(255,0,102,0.08)',
-            border: `1px solid ${syncMsg.ok ? 'rgba(0,255,136,0.3)' : 'rgba(255,0,102,0.3)'}`,
+            background: syncMsg.ok ? 'rgba(57,196,107,0.07)' : 'rgba(209,74,60,0.08)',
+            border: `1px solid ${syncMsg.ok ? 'rgba(57,196,107,0.3)' : 'rgba(209,74,60,0.3)'}`,
             color: syncMsg.ok ? '#7dffb8' : '#ff87b0',
           }}
         >
@@ -709,15 +709,15 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
           style={{
             textAlign: 'center',
             padding: '56px 24px',
-            border: '1px solid #00E5FF22',
+            border: '1px solid #39A7C922',
             background: `
-              radial-gradient(circle at 50% 50%, #00E5FF05 0%, transparent 70%),
-              repeating-linear-gradient(0deg, transparent, transparent 39px, #00E5FF0A 39px, #00E5FF0A 40px),
-              repeating-linear-gradient(90deg, transparent, transparent 39px, #00E5FF0A 39px, #00E5FF0A 40px)
+              radial-gradient(circle at 50% 50%, #39A7C905 0%, transparent 70%),
+              repeating-linear-gradient(0deg, transparent, transparent 39px, #39A7C90A 39px, #39A7C90A 40px),
+              repeating-linear-gradient(90deg, transparent, transparent 39px, #39A7C90A 39px, #39A7C90A 40px)
             `,
           }}
         >
-          <Calendar style={{ width: 48, height: 48, margin: '0 auto 16px', color: '#00E5FF33' }} />
+          <Calendar style={{ width: 48, height: 48, margin: '0 auto 16px', color: '#39A7C933' }} />
           <p className="section-label" style={{ marginBottom: 20, fontSize: 14 }}>NO MATCHES SCHEDULED</p>
           <p style={{ color: '#444', fontSize: 12, marginBottom: 24 }}>
             {apaConnected
@@ -738,7 +738,7 @@ export const ScheduleView: React.FC<ScheduleViewProps> = ({
             <section>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
                 <span className="led led-on-cyan" />
-                <span className="section-label" style={{ color: '#00E5FF' }}>UPCOMING</span>
+                <span className="section-label" style={{ color: '#39A7C9' }}>UPCOMING</span>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 {upcoming.map(e => (
