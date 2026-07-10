@@ -1,5 +1,5 @@
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Layout, TabId } from './components/Layout';
 import { AuthScreen } from './components/AuthScreen';
 import { Dashboard } from './components/Dashboard';
@@ -9,6 +9,7 @@ import { Performance } from './components/Performance';
 import { ScheduleView } from './components/ScheduleView';
 import { APAConnect } from './components/APAConnect';
 import { Scouting } from './components/Scouting';
+import { GettingStarted } from './components/GettingStarted';
 
 import { useAuth } from './hooks/useAuth';
 import { usePlayers, useMatches, useArchives, useSchedule, useSeasonWeek, useApaConnection } from './hooks/useFirestore';
@@ -20,15 +21,29 @@ const App: React.FC = () => {
   const { user, loading: authLoading, error: authError, loginGoogle, loginFacebook, logout } = useAuth();
   const uid = user?.uid ?? null;
 
-  const { players, save: savePlayer, remove: removePlayer, saveAll: saveAllPlayers } = usePlayers(uid);
-  const { connection: apaConnection, save: saveApa, update: updateApa, disconnect: disconnectApa } = useApaConnection(uid);
+  const { players, loading: playersLoading, save: savePlayer, remove: removePlayer, saveAll: saveAllPlayers } = usePlayers(uid);
+  const { connection: apaConnection, loading: apaLoading, save: saveApa, update: updateApa, disconnect: disconnectApa } = useApaConnection(uid);
   const { matches, save: saveMatch } = useMatches(uid);
   const { archives, save: saveArchive, deleteAllMatches } = useArchives(uid);
-  const { schedule, save: saveScheduleEntry, remove: removeScheduleEntry, saveAll: saveAllSchedule } = useSchedule(uid);
+  const { schedule, loading: scheduleLoading, save: saveScheduleEntry, remove: removeScheduleEntry, saveAll: saveAllSchedule } = useSchedule(uid);
   const [currentWeek, setCurrentWeek] = useSeasonWeek(uid);
 
   const [activeTab, setActiveTab] = useState<TabId>('dashboard');
   const [plannerContext, setPlannerContext] = useState<PlannerContext | undefined>(undefined);
+
+  // First-time captains: once their data has loaded and we can see they have no
+  // APA connection and no roster yet, send them straight to APA Sync instead of
+  // an empty Dashboard. Only fires once per session so it never fights back if
+  // they navigate away.
+  const autoRedirected = useRef(false);
+  useEffect(() => {
+    if (autoRedirected.current) return;
+    if (playersLoading || apaLoading) return;
+    autoRedirected.current = true;
+    if (!apaConnection && players.length === 0) {
+      setActiveTab('apa');
+    }
+  }, [playersLoading, apaLoading, apaConnection, players.length]);
 
   // ── Player ops ──────────────────────────────────────────────────────────────
   const addPlayer = useCallback((name: string, skill8: SkillLevel, skill9: SkillLevel) => {
@@ -129,11 +144,20 @@ const App: React.FC = () => {
       onLogout={logout}
     >
       {activeTab === 'dashboard' && (
-        <Dashboard
-          players={activePlayers}
-          currentWeek={currentWeek}
-          onWeekChange={setCurrentWeek}
-        />
+        <div className="space-y-6">
+          <GettingStarted
+            connected={!!apaConnection}
+            hasRoster={players.length > 0}
+            hasSchedule={schedule.length > 0}
+            loading={apaLoading || playersLoading || scheduleLoading}
+            onGoToTab={setActiveTab}
+          />
+          <Dashboard
+            players={activePlayers}
+            currentWeek={currentWeek}
+            onWeekChange={setCurrentWeek}
+          />
+        </div>
       )}
 
       {activeTab === 'roster' && (
