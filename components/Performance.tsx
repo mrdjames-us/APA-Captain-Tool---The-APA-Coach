@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Player, Match, SessionArchive } from '../types';
+import { Player, Match, SessionArchive, ScheduleEntry } from '../types';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, LineChart, Line,
@@ -11,6 +11,7 @@ interface PerformanceProps {
   players: Player[];
   matches: Match[];
   archives: SessionArchive[];
+  schedule?: ScheduleEntry[];
   onArchiveSession: (name: string) => void;
 }
 
@@ -92,6 +93,7 @@ export const Performance: React.FC<PerformanceProps> = ({
   players,
   matches,
   archives,
+  schedule = [],
   onArchiveSession,
 }) => {
   const [isArchiving, setIsArchiving] = useState(false);
@@ -100,9 +102,29 @@ export const Performance: React.FC<PerformanceProps> = ({
   );
 
   // ── Derived stats ─────────────────────────────────────────────────────────────
-  const totalWins  = matches.reduce((acc, m) => acc + m.totalWins,   0);
-  const totalGames = matches.reduce((acc, m) => acc + m.totalWins + m.totalLosses, 0);
+  // Prefer the synced APA schedule (real season results) when available; fall
+  // back to matches recorded locally via the Match Planner for captains who
+  // haven't connected APA yet.
+  const seasonMatches = schedule
+    .filter(e => e.isScored && e.myPoints != null && e.oppPoints != null)
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  const usingSeasonData = seasonMatches.length > 0;
+
+  const seasonWins = seasonMatches.filter(e => (e.myPoints as number) > (e.oppPoints as number)).length;
+  const localTotalWins  = matches.reduce((acc, m) => acc + m.totalWins,   0);
+  const localTotalGames = matches.reduce((acc, m) => acc + m.totalWins + m.totalLosses, 0);
+
+  const totalWins  = usingSeasonData ? seasonWins : localTotalWins;
+  const totalGames = usingSeasonData ? seasonMatches.length : localTotalGames;
   const sessionWinRate = totalGames > 0 ? Math.round((totalWins / totalGames) * 100) : 0;
+
+  const winRateLabel = usingSeasonData ? 'Season Win Rate' : 'Session Win Rate';
+  const winRateSub = usingSeasonData
+    ? `${totalWins} nights won of ${totalGames} played`
+    : `${totalWins} wins from ${totalGames} games`;
+  const matchesRunLabel = usingSeasonData ? 'Matches Played' : 'Matches Run';
+  const matchesRunValue = usingSeasonData ? seasonMatches.length : matches.length;
+  const matchesRunSub = usingSeasonData ? 'Synced from poolplayers.com' : 'Current session timeline';
 
   const activePlayers = players.filter(p => p.isActive);
 
@@ -119,11 +141,9 @@ export const Performance: React.FC<PerformanceProps> = ({
     }))
     .sort((a, b) => (b.winRate8 + b.winRate9) - (a.winRate8 + a.winRate9));
 
-  const matchTimeline = matches.map((m, i) => ({
-    match: i + 1,
-    wins: m.totalWins,
-    losses: m.totalLosses,
-  }));
+  const matchTimeline = usingSeasonData
+    ? seasonMatches.map((e, i) => ({ match: i + 1, wins: e.myPoints as number, losses: e.oppPoints as number }))
+    : matches.map((m, i) => ({ match: i + 1, wins: m.totalWins, losses: m.totalLosses }));
 
   const handleConfirmArchive = () => {
     onArchiveSession(sessionName.trim() || `Session ${new Date().toLocaleDateString()}`);
@@ -217,9 +237,9 @@ export const Performance: React.FC<PerformanceProps> = ({
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <StatCard
           icon={<Trophy style={{ width: 18, height: 18 }} />}
-          label="Session Win Rate"
+          label={winRateLabel}
           value={`${sessionWinRate}%`}
-          sub={`${totalWins} wins from ${totalGames} games`}
+          sub={winRateSub}
           accentColor={GOLD}
         />
         <StatCard
@@ -231,9 +251,9 @@ export const Performance: React.FC<PerformanceProps> = ({
         />
         <StatCard
           icon={<Calendar style={{ width: 18, height: 18 }} />}
-          label="Matches Run"
-          value={matches.length}
-          sub="Current session timeline"
+          label={matchesRunLabel}
+          value={matchesRunValue}
+          sub={matchesRunSub}
           accentColor="#F2C14E"
         />
       </div>

@@ -210,6 +210,7 @@ const App: React.FC = () => {
           players={players}
           matches={matches}
           archives={archives}
+          schedule={schedule}
           onArchiveSession={archiveSession}
         />
       )}
