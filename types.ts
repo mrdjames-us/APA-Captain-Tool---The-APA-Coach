@@ -12,6 +12,10 @@ export interface Player {
   wins9Ball: number;
   monthlyParticipation: number;
   isActive: boolean;
+  // APA's stable per-member id (from poolplayers.com roster data). Used to match
+  // a player across imports even if their display name changes slightly —
+  // name-only matching is fragile (nicknames, middle initials, stray whitespace).
+  apaMemberNumber?: string;
 }
 
 export enum GameType {

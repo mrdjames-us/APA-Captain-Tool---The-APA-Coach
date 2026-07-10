@@ -17,25 +17,31 @@ const clampSL = (n: number | null): SkillLevel => {
   return v as SkillLevel;
 };
 
-// Merge an APA roster into the local player list. Existing players (matched by
-// name, case-insensitive) get their skill level for the team's format updated;
-// new players are added. Returns the full list to persist and a summary.
+// Merge an APA roster into the local player list. Matched primarily by APA's
+// stable memberNumber (survives nickname/spelling changes); players imported
+// before we tracked memberNumber are matched by name once and backfilled.
+// Name-only matching is fragile — a stray space, a nickname, or a middle
+// initial silently breaks the match and leaves that player's stats stale.
 function mergeRoster(existing: Player[], roster: APARoster): { merged: Player[]; added: number; updated: number } {
   const is8 = roster.format !== 'NINE';
+  const byMemberNumber = new Map(
+    existing.filter(p => p.apaMemberNumber).map(p => [p.apaMemberNumber as string, p])
+  );
   const byName = new Map(existing.map(p => [p.name.trim().toLowerCase(), p]));
   let added = 0, updated = 0;
   const merged = [...existing];
 
   for (const rp of roster.players) {
-    const key = rp.name.trim().toLowerCase();
     const sl = clampSL(rp.skillLevel);
     const played = rp.matchesPlayed || 0;
     const won = rp.matchesWon || 0;
-    const hit = byName.get(key);
+    const hit = byMemberNumber.get(rp.memberNumber) || byName.get(rp.name.trim().toLowerCase());
     if (hit) {
       const idx = merged.findIndex(p => p.id === hit.id);
       merged[idx] = {
         ...hit,
+        name: rp.name,
+        apaMemberNumber: rp.memberNumber,
         // Skill level + this session's W/L come from APA for the team's format;
         // the other format's numbers are left untouched.
         skillLevel8Ball: is8 ? sl : hit.skillLevel8Ball,
@@ -51,6 +57,7 @@ function mergeRoster(existing: Player[], roster: APARoster): { merged: Player[];
       merged.push({
         id: Math.random().toString(36).slice(2, 11),
         name: rp.name,
+        apaMemberNumber: rp.memberNumber,
         skillLevel8Ball: is8 ? sl : 3,
         skillLevel9Ball: is8 ? 3 : sl,
         games8Ball: is8 ? played : 0,
