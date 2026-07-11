@@ -10,6 +10,17 @@ import { Player, Match, SessionArchive, ScheduleEntry, APAConnection } from '../
 const col  = (uid: string, name: string) => collection(db, 'captains', uid, name);
 const docr = (uid: string, name: string, id: string) => doc(db, 'captains', uid, name, id);
 
+// Firestore's setDoc/batch.set reject any field explicitly set to `undefined`
+// (e.g. an optional stat that was never populated) — drop those keys instead
+// of writing them, rather than requiring every caller to remember to.
+function stripUndefined<T extends object>(obj: T): T {
+  const out: any = {};
+  for (const [k, v] of Object.entries(obj)) {
+    if (v !== undefined) out[k] = v;
+  }
+  return out;
+}
+
 // ── Generic live collection hook ──────────────────────────────────────────────
 function useLiveCollection<T extends { id: string }>(
   uid: string | null,
@@ -37,7 +48,7 @@ export function usePlayers(uid: string | null) {
 
   const save = useCallback(async (p: Player) => {
     if (!uid) return;
-    await setDoc(docr(uid, 'players', p.id), { ...p });
+    await setDoc(docr(uid, 'players', p.id), stripUndefined(p));
   }, [uid]);
 
   const remove = useCallback(async (id: string) => {
@@ -48,7 +59,7 @@ export function usePlayers(uid: string | null) {
   const saveAll = useCallback(async (list: Player[]) => {
     if (!uid) return;
     const batch = writeBatch(db);
-    list.forEach(p => batch.set(docr(uid, 'players', p.id), { ...p }));
+    list.forEach(p => batch.set(docr(uid, 'players', p.id), stripUndefined(p)));
     await batch.commit();
   }, [uid]);
 
@@ -61,7 +72,7 @@ export function useMatches(uid: string | null) {
 
   const save = useCallback(async (m: Match) => {
     if (!uid) return;
-    await setDoc(docr(uid, 'matches', m.id), { ...m });
+    await setDoc(docr(uid, 'matches', m.id), stripUndefined(m));
   }, [uid]);
 
   return { matches, loading, save };
@@ -73,7 +84,7 @@ export function useArchives(uid: string | null) {
 
   const save = useCallback(async (a: SessionArchive) => {
     if (!uid) return;
-    await setDoc(docr(uid, 'archives', a.id), { ...a });
+    await setDoc(docr(uid, 'archives', a.id), stripUndefined(a));
   }, [uid]);
 
   const deleteAllMatches = useCallback(async () => {
@@ -93,7 +104,7 @@ export function useSchedule(uid: string | null) {
 
   const save = useCallback(async (e: ScheduleEntry) => {
     if (!uid) return;
-    await setDoc(docr(uid, 'schedule', e.id), { ...e });
+    await setDoc(docr(uid, 'schedule', e.id), stripUndefined(e));
   }, [uid]);
 
   const remove = useCallback(async (id: string) => {
@@ -104,7 +115,7 @@ export function useSchedule(uid: string | null) {
   const saveAll = useCallback(async (entries: ScheduleEntry[]) => {
     if (!uid) return;
     const batch = writeBatch(db);
-    entries.forEach(e => batch.set(docr(uid, 'schedule', e.id), { ...e }));
+    entries.forEach(e => batch.set(docr(uid, 'schedule', e.id), stripUndefined(e)));
     await batch.commit();
   }, [uid]);
 
@@ -129,12 +140,12 @@ export function useApaConnection(uid: string | null) {
 
   const save = useCallback(async (c: APAConnection) => {
     if (!uid) return;
-    await setDoc(doc(db, 'captains', uid, 'settings', 'apa'), { ...c });
+    await setDoc(doc(db, 'captains', uid, 'settings', 'apa'), stripUndefined(c));
   }, [uid]);
 
   const update = useCallback(async (patch: Partial<APAConnection>) => {
     if (!uid) return;
-    await setDoc(doc(db, 'captains', uid, 'settings', 'apa'), { ...patch }, { merge: true });
+    await setDoc(doc(db, 'captains', uid, 'settings', 'apa'), stripUndefined(patch), { merge: true });
   }, [uid]);
 
   const disconnect = useCallback(async () => {
