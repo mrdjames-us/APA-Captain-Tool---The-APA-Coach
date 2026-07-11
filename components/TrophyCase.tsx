@@ -5,6 +5,11 @@ import { apaAchievements } from '../services/apaApi';
 
 interface Props {
   connection: APAConnection | null;
+  // The APA team id to fetch achievements for. Callers resolve this
+  // themselves (e.g. from the synced schedule for a specific format) rather
+  // than us defaulting to whatever team is "active" in APA Sync, which may
+  // not match the format the caller is currently showing.
+  teamId: number | null;
 }
 
 interface Category {
@@ -28,18 +33,16 @@ const GOLD = '#F2C14E';
 // underlying query is unverified against live traffic — if APA's schema
 // doesn't match, this quietly shows nothing rather than an alarming error;
 // it never affects roster or schedule sync.
-export const TrophyCase: React.FC<Props> = ({ connection }) => {
+export const TrophyCase: React.FC<Props> = ({ connection, teamId }) => {
   const [loading, setLoading] = useState(false);
   const [unavailable, setUnavailable] = useState(false);
   const [leaders, setLeaders] = useState<{ label: string; name: string; count: number }[] | null>(null);
 
-  const activeTeamId = connection?.activeTeamId ?? null;
-
   useEffect(() => {
-    if (!connection || !activeTeamId) { setLeaders(null); return; }
+    if (!connection || !teamId) { setLeaders(null); return; }
     let cancelled = false;
     setLoading(true); setUnavailable(false);
-    apaAchievements(connection.deviceRefreshToken, activeTeamId)
+    apaAchievements(connection.deviceRefreshToken, teamId)
       .then(res => {
         if (cancelled) return;
         const found: { label: string; name: string; count: number }[] = [];
@@ -56,9 +59,9 @@ export const TrophyCase: React.FC<Props> = ({ connection }) => {
       .catch(() => { if (!cancelled) setUnavailable(true); })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, [connection, activeTeamId]);
+  }, [connection, teamId]);
 
-  if (!connection || !activeTeamId) return null;
+  if (!connection || !teamId) return null;
   if (unavailable) return null; // fail soft — no scary error for a bonus feature
   if (!loading && (!leaders || leaders.length === 0)) return null;
 

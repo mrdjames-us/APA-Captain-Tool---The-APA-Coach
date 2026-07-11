@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Player, Match, SessionArchive, ScheduleEntry, APAConnection } from '../types';
+import { Player, Match, SessionArchive, ScheduleEntry, APAConnection, GameType } from '../types';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, LineChart, Line,
@@ -103,50 +103,68 @@ export const Performance: React.FC<PerformanceProps> = ({
   const [sessionName, setSessionName] = useState(
     `Session ${new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}`
   );
+  // 8-ball and 9-ball are separate teams in this league — scope the whole
+  // page to one format at a time instead of blending two teams' records.
+  const [format, setFormat] = useState<'EIGHT' | 'NINE'>('EIGHT');
+  const is8 = format === 'EIGHT';
+  const formatLabel = is8 ? '8-Ball' : '9-Ball';
+  const formatAccent = is8 ? CYAN : GOLD;
 
   // ── Derived stats ─────────────────────────────────────────────────────────────
   // Prefer the synced APA schedule (real season results) when available; fall
   // back to matches recorded locally via the Match Planner for captains who
-  // haven't connected APA yet.
+  // haven't connected APA yet. Both are scoped to the selected format.
+  const scheduleHasAnySync = schedule.some(e => e.isScored);
   const seasonMatches = schedule
-    .filter(e => e.isScored && e.myPoints != null && e.oppPoints != null)
+    .filter(e => e.isScored && e.myPoints != null && e.oppPoints != null && (is8 ? e.format !== 'NINE' : e.format === 'NINE'))
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   const usingSeasonData = seasonMatches.length > 0;
+  const missingFormatSync = scheduleHasAnySync && !usingSeasonData;
+
+  const targetGameType = is8 ? GameType.EIGHT_BALL : GameType.NINE_BALL;
+  const localMatchesForFormat = matches.filter(m => m.slots.some(s => s.gameType === targetGameType));
 
   const seasonWins = seasonMatches.filter(e => (e.myPoints as number) > (e.oppPoints as number)).length;
-  const localTotalWins  = matches.reduce((acc, m) => acc + m.totalWins,   0);
-  const localTotalGames = matches.reduce((acc, m) => acc + m.totalWins + m.totalLosses, 0);
+  const localTotalWins  = localMatchesForFormat.reduce((acc, m) => acc + m.totalWins,   0);
+  const localTotalGames = localMatchesForFormat.reduce((acc, m) => acc + m.totalWins + m.totalLosses, 0);
 
   const totalWins  = usingSeasonData ? seasonWins : localTotalWins;
   const totalGames = usingSeasonData ? seasonMatches.length : localTotalGames;
   const sessionWinRate = totalGames > 0 ? Math.round((totalWins / totalGames) * 100) : 0;
 
-  const winRateLabel = usingSeasonData ? 'Season Win Rate' : 'Session Win Rate';
+  const winRateLabel = `${usingSeasonData ? 'Season' : 'Session'} Win Rate (${formatLabel})`;
   const winRateSub = usingSeasonData
     ? `${totalWins} nights won of ${totalGames} played`
     : `${totalWins} wins from ${totalGames} games`;
-  const matchesRunLabel = usingSeasonData ? 'Matches Played' : 'Matches Run';
-  const matchesRunValue = usingSeasonData ? seasonMatches.length : matches.length;
+  const matchesRunLabel = `${usingSeasonData ? 'Matches Played' : 'Matches Run'} (${formatLabel})`;
+  const matchesRunValue = usingSeasonData ? seasonMatches.length : localMatchesForFormat.length;
   const matchesRunSub = usingSeasonData ? 'Synced from poolplayers.com' : 'Current session timeline';
 
   const activePlayers = players.filter(p => p.isActive);
 
-  // Keep 8-ball and 9-ball separate — in this league they're different teams,
-  // so a combined "total" would mix two teams' records.
+  // Single-format leaderboard — a player's 8-ball and 9-ball win rates come
+  // from two different teams, so they don't belong on the same bar.
   const playerStats = players
-    .filter(p => p.games8Ball + p.games9Ball > 0)
+    .filter(p => (is8 ? p.games8Ball : p.games9Ball) > 0)
     .map(p => ({
       name: p.name.split(' ')[0],
-      winRate8: p.games8Ball > 0 ? Math.round((p.wins8Ball / p.games8Ball) * 100) : 0,
-      winRate9: p.games9Ball > 0 ? Math.round((p.wins9Ball / p.games9Ball) * 100) : 0,
-      games8: p.games8Ball,
-      games9: p.games9Ball,
+      winRate: is8
+        ? Math.round((p.wins8Ball / p.games8Ball) * 100)
+        : Math.round((p.wins9Ball / p.games9Ball) * 100),
+      games: is8 ? p.games8Ball : p.games9Ball,
     }))
-    .sort((a, b) => (b.winRate8 + b.winRate9) - (a.winRate8 + a.winRate9));
+    .sort((a, b) => b.winRate - a.winRate);
 
   const matchTimeline = usingSeasonData
     ? seasonMatches.map((e, i) => ({ match: i + 1, wins: e.myPoints as number, losses: e.oppPoints as number }))
-    : matches.map((m, i) => ({ match: i + 1, wins: m.totalWins, losses: m.totalLosses }));
+    : localMatchesForFormat.map((m, i) => ({ match: i + 1, wins: m.totalWins, losses: m.totalLosses }));
+
+  // Resolve each format's real APA team id from the synced schedule (not the
+  // "active team" currently selected in APA Sync, which may not match the
+  // format toggle) so Trophy Case fetches achievements for the right team.
+  const eightTeamId = schedule.find(e => e.format !== 'NINE' && e.apaTeamId != null)?.apaTeamId ?? null;
+  const nineTeamId  = schedule.find(e => e.format === 'NINE' && e.apaTeamId != null)?.apaTeamId ?? null;
+  const trophyTeamId = is8 ? eightTeamId : nineTeamId;
 
   // ── Streaks, home/away split, head-to-head, most active — all derived from
   // the synced schedule, no extra API calls needed. ─────────────────────────
@@ -199,7 +217,7 @@ export const Performance: React.FC<PerformanceProps> = ({
   })();
 
   const mostActive = [...players]
-    .map(p => ({ name: p.name, games: p.games8Ball + p.games9Ball }))
+    .map(p => ({ name: p.name, games: is8 ? p.games8Ball : p.games9Ball }))
     .filter(p => p.games > 0)
     .sort((a, b) => b.games - a.games)
     .slice(0, 5);
@@ -232,15 +250,36 @@ export const Performance: React.FC<PerformanceProps> = ({
           </p>
         </div>
 
-        <button
-          onClick={() => setIsArchiving(true)}
-          className="btn-neon-magenta flex items-center gap-2 rounded-xl"
-          style={{ padding: '10px 20px' }}
-        >
-          <Archive style={{ width: 16, height: 16 }} />
-          <span className="font-orbitron" style={{ fontSize: 11, letterSpacing: '0.1em' }}>End Session</span>
-        </button>
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex rounded overflow-hidden" style={{ border: '1px solid rgba(239,231,214,0.25)' }}>
+            {(['EIGHT', 'NINE'] as const).map(f => (
+              <button key={f} onClick={() => setFormat(f)}
+                className="px-4 py-2.5 text-xs font-orbitron font-bold uppercase tracking-widest transition-all"
+                style={format === f
+                  ? { background: f === 'EIGHT' ? CYAN : GOLD, color: '#0A1F17' }
+                  : { background: 'transparent', color: 'rgba(239,231,214,0.7)' }}>
+                {f === 'EIGHT' ? '8-Ball' : '9-Ball'}
+              </button>
+            ))}
+          </div>
+          <button
+            onClick={() => setIsArchiving(true)}
+            className="btn-neon-magenta flex items-center gap-2 rounded-xl"
+            style={{ padding: '10px 20px' }}
+          >
+            <Archive style={{ width: 16, height: 16 }} />
+            <span className="font-orbitron" style={{ fontSize: 11, letterSpacing: '0.1em' }}>End Session</span>
+          </button>
+        </div>
       </header>
+
+      {/* ── Missing sync hint for this format ─────────────────────────────────── */}
+      {missingFormatSync && (
+        <div className="flex items-start gap-2 px-4 py-3 rounded text-sm"
+          style={{ background: `${formatAccent}0d`, border: `1px solid ${formatAccent}33`, color: 'rgba(239,231,214,0.8)' }}>
+          <span>No synced {formatLabel} matches yet — sync your {formatLabel} team's schedule in the <strong>Schedule</strong> tab.</span>
+        </div>
+      )}
 
       {/* ── Archive Confirm Panel ─────────────────────────────────────────────── */}
       {isArchiving && (
@@ -325,7 +364,7 @@ export const Performance: React.FC<PerformanceProps> = ({
       </div>
 
       {/* ── Trophy Case ───────────────────────────────────────────────────────── */}
-      <TrophyCase connection={connection} />
+      <TrophyCase connection={connection} teamId={trophyTeamId} />
 
       {/* ── Charts row ───────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -338,14 +377,14 @@ export const Performance: React.FC<PerformanceProps> = ({
               className="font-orbitron"
               style={{ fontSize: 11, fontWeight: 800, color: '#EFE7D6', letterSpacing: '0.12em' }}
             >
-              PERFORMANCE LEADERBOARD
+              {formatLabel.toUpperCase()} LEADERBOARD
             </h4>
           </div>
 
           <div style={{ height: 300 }}>
             {playerStats.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={playerStats} layout="vertical" barSize={16}>
+                <BarChart data={playerStats} layout="vertical" barSize={18}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(57,167,201,0.06)" horizontal={false} />
                   <XAxis
                     type="number"
@@ -371,26 +410,15 @@ export const Performance: React.FC<PerformanceProps> = ({
                     content={<NeonTooltip />}
                     cursor={{ fill: 'rgba(57,167,201,0.04)' }}
                   />
-                  <Bar dataKey="winRate8" name="8-Ball %" fill={CYAN}      radius={[0, 4, 4, 0]} />
-                  <Bar dataKey="winRate9" name="9-Ball %" fill="#F2C14E" radius={[0, 4, 4, 0]} />
+                  <Bar dataKey="winRate" name={`${formatLabel} Win %`} fill={formatAccent} radius={[0, 4, 4, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             ) : (
               <div className="flex items-center justify-center h-full">
-                <p className="section-label" style={{ color: 'rgba(239,231,214,0.6)' }}>No player data yet</p>
+                <p className="section-label" style={{ color: 'rgba(239,231,214,0.6)' }}>No {formatLabel} player data yet</p>
               </div>
             )}
           </div>
-          {playerStats.length > 0 && (
-            <div className="flex items-center justify-center gap-5 mt-3">
-              <span className="flex items-center gap-1.5 text-xs" style={{ color: 'rgba(239,231,214,0.7)' }}>
-                <span style={{ width: 10, height: 10, borderRadius: '50%', background: CYAN }} /> 8-Ball
-              </span>
-              <span className="flex items-center gap-1.5 text-xs" style={{ color: 'rgba(239,231,214,0.7)' }}>
-                <span style={{ width: 10, height: 10, borderRadius: '50%', background: '#F2C14E' }} /> 9-Ball
-              </span>
-            </div>
-          )}
         </div>
 
         {/* Success Trends — LineChart */}
