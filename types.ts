@@ -89,7 +89,7 @@ export interface AppUser {
   displayName: string;
   email: string;
   photoURL: string;
-  provider: 'google' | 'facebook';
+  provider: 'google';
 }
 
 // ── poolplayers.com (APA) sync ────────────────────────────────────────────────

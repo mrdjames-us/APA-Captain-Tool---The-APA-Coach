@@ -1,15 +1,14 @@
 
 import React from 'react';
-import { Chrome, Facebook, Loader2, AlertCircle } from 'lucide-react';
+import { Loader2, AlertCircle } from 'lucide-react';
 
 interface AuthScreenProps {
-  onGoogle:   () => void;
-  onFacebook: () => void;
-  loading:    boolean;
-  error:      string | null;
+  onGoogle: () => void;
+  loading:  boolean;
+  error:    string | null;
 }
 
-export const AuthScreen: React.FC<AuthScreenProps> = ({ onGoogle, onFacebook, loading, error }) => (
+export const AuthScreen: React.FC<AuthScreenProps> = ({ onGoogle, loading, error }) => (
   <div className="min-h-screen grid-bg flex flex-col items-center justify-center p-6 relative overflow-hidden">
     {/* Radial spotlight */}
     <div
@@ -109,30 +108,6 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onGoogle, onFacebook, lo
             <GoogleIcon />
           )}
           Sign in with Google
-        </button>
-
-        <button
-          onClick={onFacebook}
-          disabled={loading}
-          className="w-full py-4 rounded flex items-center justify-center gap-3 font-orbitron text-sm font-bold tracking-widest uppercase transition-all"
-          style={{
-            background: 'transparent',
-            border: '1px solid #D14A3C',
-            color: '#D14A3C',
-            textShadow: '0 0 10px rgba(209,74,60,0.7)',
-            boxShadow: '0 0 14px rgba(209,74,60,0.2)',
-          }}
-          onMouseEnter={e => {
-            (e.currentTarget as HTMLButtonElement).style.background = 'rgba(209,74,60,0.12)';
-            (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 0 28px rgba(209,74,60,0.45)';
-          }}
-          onMouseLeave={e => {
-            (e.currentTarget as HTMLButtonElement).style.background = 'transparent';
-            (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 0 14px rgba(209,74,60,0.2)';
-          }}
-        >
-          <Facebook className="w-5 h-5" />
-          Sign in with Facebook
         </button>
       </div>
 

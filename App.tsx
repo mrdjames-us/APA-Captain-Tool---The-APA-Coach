@@ -18,7 +18,7 @@ import { Player, SkillLevel, Match, GameType, SessionArchive, ScheduleEntry, Pla
 import { Loader2 } from 'lucide-react';
 
 const App: React.FC = () => {
-  const { user, loading: authLoading, error: authError, loginGoogle, loginFacebook, logout } = useAuth();
+  const { user, loading: authLoading, error: authError, loginGoogle, logout } = useAuth();
   const uid = user?.uid ?? null;
 
   const { players, loading: playersLoading, save: savePlayer, remove: removePlayer, saveAll: saveAllPlayers } = usePlayers(uid);
@@ -125,7 +125,6 @@ const App: React.FC = () => {
     return (
       <AuthScreen
         onGoogle={loginGoogle}
-        onFacebook={loginFacebook}
         loading={false}
         error={authError}
       />

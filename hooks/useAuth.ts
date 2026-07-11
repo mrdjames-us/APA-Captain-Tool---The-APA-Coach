@@ -5,17 +5,16 @@ import {
   signOut,
   User as FirebaseUser,
 } from 'firebase/auth';
-import { auth, googleProvider, facebookProvider } from '../firebase';
+import { auth, googleProvider } from '../firebase';
 import { AppUser } from '../types';
 
 function toAppUser(u: FirebaseUser): AppUser {
-  const isGoogle = u.providerData.some(p => p.providerId === 'google.com');
   return {
     uid:         u.uid,
     displayName: u.displayName || 'Captain',
     email:       u.email || '',
     photoURL:    u.photoURL || `https://api.dicebear.com/7.x/bottts/svg?seed=${u.uid}`,
-    provider:    isGoogle ? 'google' : 'facebook',
+    provider:    'google',
   };
 }
 
@@ -43,18 +42,7 @@ export function useAuth() {
     }
   };
 
-  const loginFacebook = async () => {
-    setError(null);
-    try {
-      await signInWithPopup(auth, facebookProvider);
-    } catch (e: any) {
-      if (e.code !== 'auth/popup-closed-by-user') {
-        setError(e.message || 'Facebook sign-in failed');
-      }
-    }
-  };
-
   const logout = () => signOut(auth);
 
-  return { user, loading, error, loginGoogle, loginFacebook, logout };
+  return { user, loading, error, loginGoogle, logout };
 }
