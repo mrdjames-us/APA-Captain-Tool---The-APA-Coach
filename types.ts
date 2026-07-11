@@ -16,6 +16,13 @@ export interface Player {
   // a player across imports even if their display name changes slightly —
   // name-only matching is fragile (nicknames, middle initials, stray whitespace).
   apaMemberNumber?: string;
+  // Points-per-match / performance average from APA, per format. A better
+  // efficiency read than win % alone (a 8-7 grinder and an 8-1 blowout look
+  // identical under win rate).
+  ppm8Ball?: number;
+  pa8Ball?: number;
+  ppm9Ball?: number;
+  pa9Ball?: number;
 }
 
 export enum GameType {
@@ -153,6 +160,25 @@ export interface APATeamPage {
   } | null;
   location: string | null;
   session: { id: number; name: string } | null;
+}
+
+// Trophy Case: best-effort achievement/highlight counts per player. Any field
+// may be null if APA doesn't report it for that player/format.
+export interface APAAchievementPlayer {
+  memberNumber: string;
+  name: string;
+  eightOnBreaks: number | null;
+  breakAndRuns8: number | null;
+  rackless: number | null;
+  breakAndRuns9: number | null;
+  nineOnSnaps: number | null;
+  skunks: number | null;
+  miniSlams: number | null;
+}
+
+export interface APAAchievements {
+  teamId: number;
+  players: APAAchievementPlayer[];
 }
 
 // What we persist locally to keep syncing without re-entering a password.

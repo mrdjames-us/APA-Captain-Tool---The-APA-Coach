@@ -1,7 +1,7 @@
 // Frontend transport for the APA (poolplayers.com) sync endpoints.
 // In production these are Cloudflare Pages Functions (functions/api/apa/*);
 // in local dev they're the Express mirror (npm run dev:full), proxied by Vite.
-import { APATeam, APARoster, APASchedule, APATeamPage } from '../types';
+import { APATeam, APARoster, APASchedule, APATeamPage, APAAchievements } from '../types';
 
 const BASE = '/api/apa';
 
@@ -79,4 +79,13 @@ export interface ScoutResult extends ApiOk {
 // Scout any team (opponents included) by id.
 export function apaScout(deviceRefreshToken: string, teamId: number): Promise<ScoutResult> {
   return post<ScoutResult>('/scout', { deviceRefreshToken, teamId });
+}
+
+export interface AchievementsResult extends ApiOk, APAAchievements {}
+
+// Trophy Case: best-effort achievement counts. Treat failures as "unavailable"
+// rather than a real error — the field names behind this were captured from a
+// cached-state dump, not verified live traffic like the rest of the API.
+export function apaAchievements(deviceRefreshToken: string, teamId: number): Promise<AchievementsResult> {
+  return post<AchievementsResult>('/achievements', { deviceRefreshToken, teamId });
 }

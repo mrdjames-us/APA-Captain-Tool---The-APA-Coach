@@ -35,6 +35,8 @@ function mergeRoster(existing: Player[], roster: APARoster): { merged: Player[];
     const sl = clampSL(rp.skillLevel);
     const played = rp.matchesPlayed || 0;
     const won = rp.matchesWon || 0;
+    const ppm = typeof rp.ppm === 'number' ? rp.ppm : undefined;
+    const pa = typeof rp.pa === 'number' ? rp.pa : undefined;
     const hit = byMemberNumber.get(rp.memberNumber) || byName.get(rp.name.trim().toLowerCase());
     if (hit) {
       const idx = merged.findIndex(p => p.id === hit.id);
@@ -50,6 +52,10 @@ function mergeRoster(existing: Player[], roster: APARoster): { merged: Player[];
         wins8Ball:  is8 ? won    : hit.wins8Ball,
         games9Ball: is8 ? hit.games9Ball : played,
         wins9Ball:  is8 ? hit.wins9Ball  : won,
+        ppm8Ball: is8 ? ppm : hit.ppm8Ball,
+        pa8Ball:  is8 ? pa  : hit.pa8Ball,
+        ppm9Ball: is8 ? hit.ppm9Ball : ppm,
+        pa9Ball:  is8 ? hit.pa9Ball  : pa,
         isActive: true,
       };
       updated++;
@@ -64,6 +70,10 @@ function mergeRoster(existing: Player[], roster: APARoster): { merged: Player[];
         wins8Ball:  is8 ? won : 0,
         games9Ball: is8 ? 0 : played,
         wins9Ball:  is8 ? 0 : won,
+        ppm8Ball: is8 ? ppm : undefined,
+        pa8Ball:  is8 ? pa  : undefined,
+        ppm9Ball: is8 ? undefined : ppm,
+        pa9Ball:  is8 ? undefined : pa,
         monthlyParticipation: 0, isActive: true,
       });
       added++;

@@ -211,6 +211,7 @@ const App: React.FC = () => {
           matches={matches}
           archives={archives}
           schedule={schedule}
+          connection={apaConnection}
           onArchiveSession={archiveSession}
         />
       )}

@@ -785,7 +785,7 @@ export const Roster: React.FC<RosterProps> = ({
                   <div className="flex items-center justify-between">
                     <span className="section-label">8-BALL SL {player.skillLevel8Ball}</span>
                     <span className="font-mono text-xs" style={{ color: '#39A7C9' }}>
-                      {winRate8}% WIN
+                      {winRate8}% WIN{typeof player.ppm8Ball === 'number' ? ` · ${player.ppm8Ball.toFixed(2)} PPM` : ''}
                     </span>
                   </div>
                   <SkillLEDs level={player.skillLevel8Ball} color="cyan" />
@@ -793,7 +793,7 @@ export const Roster: React.FC<RosterProps> = ({
                   <div className="flex items-center justify-between mt-1">
                     <span className="section-label">9-BALL SL {player.skillLevel9Ball}</span>
                     <span className="font-mono text-xs" style={{ color: '#F2C14E' }}>
-                      {winRate9}% WIN
+                      {winRate9}% WIN{typeof player.ppm9Ball === 'number' ? ` · ${player.ppm9Ball.toFixed(2)} PPM` : ''}
                     </span>
                   </div>
                   <SkillLEDs level={player.skillLevel9Ball} color="gold" />

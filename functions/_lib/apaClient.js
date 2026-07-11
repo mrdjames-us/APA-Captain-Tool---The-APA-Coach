@@ -139,6 +139,25 @@ fragment matchListItem on Match {
   away { id name number isMine }
 }`;
 
+// Achievement/highlight counts (break-and-runs, 8-on-the-break, mini-slams,
+// rackless runs, skunks, 9-on-the-snap). These fields are NOT part of the
+// working teamRoster query above — kept isolated in their own query so that if
+// a field name here is wrong (unverified against live traffic, only from a
+// cached-state capture), it only breaks the Trophy Case feature, never the
+// roster/schedule sync that everything else depends on.
+const Q_TEAM_ACHIEVEMENTS = `query teamAchievements($id: Int!) {
+  team(id: $id) {
+    id
+    roster {
+      id
+      memberNumber
+      displayName
+      ... on EightBallPlayer { eightOnBreaks eightBallBreakAndRuns miniSlams rackless }
+      ... on NineBallPlayer  { nineBallBreakAndRuns nineOnSnaps miniSlams skunks }
+    }
+  }
+}`;
+
 const Q_TEAM_PAGE = `query teamPage($id: Int!) {
   team(id: $id) {
     id name number isTied standing
@@ -289,6 +308,29 @@ export async function getTeamPage(accessToken, teamId) {
   };
 }
 
+// Best-effort achievement/highlight counts per player. Throws ApaError like the
+// other queries if the API rejects it — callers should treat this feature as
+// optional and fail soft (see components/TrophyCase.tsx).
+export async function getAchievements(accessToken, teamId) {
+  const data = await gql('teamAchievements', Q_TEAM_ACHIEVEMENTS, { id: Number(teamId) }, accessToken);
+  const team = data && data.team;
+  if (!team) throw new ApaError('GQL', `Team ${teamId} not found.`);
+  return {
+    teamId: team.id,
+    players: (team.roster || []).map((r) => ({
+      memberNumber: r.memberNumber,
+      name: r.displayName,
+      eightOnBreaks: r.eightOnBreaks ?? null,
+      breakAndRuns8: r.eightBallBreakAndRuns ?? null,
+      rackless: r.rackless ?? null,
+      breakAndRuns9: r.nineBallBreakAndRuns ?? null,
+      nineOnSnaps: r.nineOnSnaps ?? null,
+      skunks: r.skunks ?? null,
+      miniSlams: r.miniSlams ?? null,
+    })),
+  };
+}
+
 // ── High-level helpers ────────────────────────────────────────────────────────
 
 // One-shot: given a stored deviceRefreshToken, return the member's teams.
@@ -316,4 +358,10 @@ export async function scoutTeam(deviceRefreshToken, teamId) {
     getRoster(accessToken, teamId),
   ]);
   return { page, roster };
+}
+
+// Trophy Case: best-effort achievement counts for a team's roster.
+export async function syncAchievements(deviceRefreshToken, teamId) {
+  const accessToken = await getAccessToken(deviceRefreshToken);
+  return getAchievements(accessToken, teamId);
 }
