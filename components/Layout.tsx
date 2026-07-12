@@ -18,13 +18,13 @@ interface LayoutProps {
 }
 
 const NAV: { id: TabId; label: string; icon: React.ElementType; accent?: string }[] = [
-  { id: 'dashboard', label: 'Command Board',   icon: LayoutDashboard },
+  { id: 'dashboard', label: 'Dashboard',        icon: LayoutDashboard },
   { id: 'roster',    label: 'Team Roster',      icon: Users           },
   { id: 'apa',       label: 'APA Sync',         icon: Globe           },
   { id: 'schedule',  label: 'Schedule',         icon: CalendarDays    },
   { id: 'planner',   label: 'Match Planner',    icon: Cpu             },
   { id: 'scouting',  label: 'Scouting',         icon: Crosshair       },
-  { id: 'history',   label: 'Tactical History', icon: BarChart3       },
+  { id: 'history',   label: 'Stats & History',  icon: BarChart3       },
 ];
 
 export const Layout: React.FC<LayoutProps> = ({
@@ -124,10 +124,10 @@ export const Layout: React.FC<LayoutProps> = ({
 
         {/* Footer */}
         <div className="px-4 pb-6 shrink-0 space-y-4" style={{ borderTop: '1px solid rgba(57,167,201,0.06)' }}>
-          {/* Squad strength */}
+          {/* Team strength */}
           <div className="pt-4 px-2">
             <div className="flex justify-between items-center mb-2">
-              <span className="section-label">Squad Strength</span>
+              <span className="section-label">Team Strength</span>
               <span className="font-mono text-xs" style={{ color: '#39A7C9' }}>
                 {playerCount}<span style={{ color: 'rgba(239,231,214,0.3)' }}>/8</span>
               </span>

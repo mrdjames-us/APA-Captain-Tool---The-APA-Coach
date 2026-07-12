@@ -203,10 +203,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
               letterSpacing: '0.12em',
             }}
           >
-            COMMAND BOARD
+            DASHBOARD
           </h2>
           <p className="section-label mt-2" style={{ color: 'rgba(57,167,201,0.82)' }}>
-            Tactical deployment &amp; mission readiness
+            Team overview &amp; playoff readiness
           </p>
         </div>
 
@@ -344,10 +344,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 letterSpacing: '0.12em',
               }}
             >
-              FULL READINESS
+              ALL QUALIFIED
             </h4>
             <p className="section-label mt-2" style={{ color: 'rgba(57,196,107,0.6)' }}>
-              All operators meet eligibility criteria
+              All players meet eligibility criteria
             </p>
           </div>
         )}
@@ -486,7 +486,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
         </div>
 
-        {/* Squad Deployment donut */}
+        {/* Games by format donut */}
         <div className="card rounded-3xl" style={{ padding: '24px 24px 20px' }}>
           <div className="flex items-center gap-3 mb-6">
             <div style={{ width: 3, height: 22, background: NINE, borderRadius: 2, boxShadow: `0 0 8px ${NINE}` }} />
@@ -494,7 +494,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               className="font-orbitron"
               style={{ fontSize: 11, fontWeight: 800, color: '#EFE7D6', letterSpacing: '0.12em' }}
             >
-              SQUAD DEPLOYMENT
+              GAMES BY FORMAT
             </h4>
           </div>
 
@@ -548,7 +548,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               </ResponsiveContainer>
             ) : (
               <div className="flex items-center justify-center h-full">
-                <p className="section-label" style={{ color: 'rgba(239,231,214,0.6)' }}>No deployment data</p>
+                <p className="section-label" style={{ color: 'rgba(239,231,214,0.6)' }}>No game data</p>
               </div>
             )}
           </div>

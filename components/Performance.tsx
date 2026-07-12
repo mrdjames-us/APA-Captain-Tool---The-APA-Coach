@@ -243,10 +243,10 @@ export const Performance: React.FC<PerformanceProps> = ({
               letterSpacing: '0.12em',
             }}
           >
-            TACTICAL HISTORY
+            STATS &amp; HISTORY
           </h2>
           <p className="section-label mt-2" style={{ color: 'rgba(242,193,78,0.82)' }}>
-            Combat effectiveness &amp; seasonal mission data
+            Win rates &amp; season trends
           </p>
         </div>
 
@@ -295,7 +295,7 @@ export const Performance: React.FC<PerformanceProps> = ({
             className="font-orbitron"
             style={{ fontSize: 14, fontWeight: 800, color: '#EFE7D6', letterSpacing: '0.12em', marginBottom: 8 }}
           >
-            CONFIRM MISSION COMPLETION
+            CONFIRM SESSION COMPLETION
           </h3>
           <p style={{ fontSize: 13, color: 'rgba(239,231,214,0.78)', marginBottom: 24, lineHeight: 1.6 }}>
             This will archive all active matches and reset player session stats.
