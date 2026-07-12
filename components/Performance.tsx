@@ -299,7 +299,7 @@ export const Performance: React.FC<PerformanceProps> = ({
           </h3>
           <p style={{ fontSize: 13, color: 'rgba(239,231,214,0.78)', marginBottom: 24, lineHeight: 1.6 }}>
             This will archive all active matches and reset player session stats.
-            Historical data will be preserved in the mission archive.
+            Historical data will be preserved in the session archive.
           </p>
 
           <input
@@ -576,7 +576,7 @@ export const Performance: React.FC<PerformanceProps> = ({
         </section>
       )}
 
-      {/* ── Mission Archive ───────────────────────────────────────────────────── */}
+      {/* ── Session Archive ───────────────────────────────────────────────────── */}
       <section>
         <div className="flex items-center gap-3 mb-5">
           <History style={{ width: 18, height: 18, color: GOLD }} />
@@ -584,7 +584,7 @@ export const Performance: React.FC<PerformanceProps> = ({
             className="font-orbitron"
             style={{ fontSize: 13, fontWeight: 800, color: '#EFE7D6', letterSpacing: '0.1em' }}
           >
-            MISSION ARCHIVE
+            SESSION ARCHIVE
           </h3>
         </div>
 
