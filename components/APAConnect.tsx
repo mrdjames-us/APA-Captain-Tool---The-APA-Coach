@@ -169,7 +169,7 @@ export const APAConnect: React.FC<Props> = ({
             if (typeof p.matchesPlayed === 'number') lifetimeByMember.set(p.memberNumber, p.matchesPlayed);
           }
           const withData = lt.players.filter(p => typeof p.matchesPlayed === 'number').length;
-          setLifetimeDebug(`Lifetime sync OK: ${withData}/${lt.players.length} players returned a lifetime count. Sample: ${lt.players.slice(0, 3).map(p => `${p.memberNumber}=${p.matchesPlayed}`).join(', ') || '(none)'}`);
+          setLifetimeDebug(`Lifetime sync OK: ${withData}/${lt.players.length} returned a count. RAW first player: ${(lt as any).sampleRaw || '(none)'}`);
         } catch (e: any) {
           setLifetimeDebug(`Lifetime sync FAILED: ${e?.message || e}`);
         }

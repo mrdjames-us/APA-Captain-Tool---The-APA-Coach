@@ -184,7 +184,9 @@ function lifetimeQuery(format) {
         id
         aliases {
           id
-          stats(filter: ${filter}) { ${frag} }
+          displayName
+          formats
+          stats(filter: ${filter}) { __typename ${frag} }
         }
       }
     }
@@ -374,9 +376,13 @@ export async function getLifetime(accessToken, teamId, format) {
   const team = data && data.team;
   if (!team) throw new ApaError('GQL', `Team ${teamId} not found.`);
   const fmt = (team.division && team.division.type) || format || null;
+  // TEMP diagnostic: raw shape of the first roster member so we can see whether
+  // aliases is empty, stats is null, or the concrete stats type differs.
+  const sampleRaw = JSON.stringify((team.roster || [])[0] || null);
   return {
     teamId: team.id,
     format: fmt,
+    sampleRaw,
     players: (team.roster || []).map((r) => {
       const aliases = (r.member && r.member.aliases) || [];
       let total = null;
