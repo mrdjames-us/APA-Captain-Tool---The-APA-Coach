@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Globe, Loader2, CheckCircle2, AlertTriangle, RefreshCw, LogOut, Download, ShieldCheck } from 'lucide-react';
 import { APAConnection, APARoster, Player, SkillLevel } from '../types';
-import { apaLogin, apaTeams, apaTeam } from '../services/apaApi';
+import { apaLogin, apaTeams, apaTeam, apaLifetime } from '../services/apaApi';
 
 interface Props {
   connection: APAConnection | null;
@@ -22,7 +22,11 @@ const clampSL = (n: number | null): SkillLevel => {
 // before we tracked memberNumber are matched by name once and backfilled.
 // Name-only matching is fragile — a stray space, a nickname, or a middle
 // initial silently breaks the match and leaves that player's stats stale.
-function mergeRoster(existing: Player[], roster: APARoster): { merged: Player[]; added: number; updated: number } {
+function mergeRoster(
+  existing: Player[],
+  roster: APARoster,
+  lifetimeByMember: Map<string, number> = new Map(),
+): { merged: Player[]; added: number; updated: number } {
   const is8 = roster.format !== 'NINE';
   const byMemberNumber = new Map(
     existing.filter(p => p.apaMemberNumber).map(p => [p.apaMemberNumber as string, p])
@@ -37,6 +41,7 @@ function mergeRoster(existing: Player[], roster: APARoster): { merged: Player[];
     const won = rp.matchesWon || 0;
     const ppm = typeof rp.ppm === 'number' ? rp.ppm : undefined;
     const pa = typeof rp.pa === 'number' ? rp.pa : undefined;
+    const life = lifetimeByMember.get(rp.memberNumber); // undefined if unavailable
     const hit = byMemberNumber.get(rp.memberNumber) || byName.get(rp.name.trim().toLowerCase());
     if (hit) {
       const idx = merged.findIndex(p => p.id === hit.id);
@@ -56,6 +61,8 @@ function mergeRoster(existing: Player[], roster: APARoster): { merged: Player[];
         pa8Ball:  is8 ? pa  : hit.pa8Ball,
         ppm9Ball: is8 ? hit.ppm9Ball : ppm,
         pa9Ball:  is8 ? hit.pa9Ball  : pa,
+        lifetime8Ball: is8 ? (life ?? hit.lifetime8Ball) : hit.lifetime8Ball,
+        lifetime9Ball: is8 ? hit.lifetime9Ball : (life ?? hit.lifetime9Ball),
         isActive: true,
       };
       updated++;
@@ -74,6 +81,8 @@ function mergeRoster(existing: Player[], roster: APARoster): { merged: Player[];
         pa8Ball:  is8 ? pa  : undefined,
         ppm9Ball: is8 ? undefined : ppm,
         pa9Ball:  is8 ? undefined : pa,
+        lifetime8Ball: is8 ? life : undefined,
+        lifetime9Ball: is8 ? undefined : life,
         monthlyParticipation: 0, isActive: true,
       });
       added++;
@@ -145,7 +154,19 @@ export const APAConnect: React.FC<Props> = ({
     if (!preview) return;
     setBusy(true); setError(null);
     try {
-      const { merged, added, updated } = mergeRoster(players, preview);
+      // Lifetime match counts (for the 10-lifetime-match Vegas rule) come from a
+      // separate, unverified query — never let it block or fail the import. If it
+      // doesn't return, players import without lifetime and the meter falls back.
+      let lifetimeByMember = new Map<string, number>();
+      if (connection?.activeTeamId) {
+        try {
+          const lt = await apaLifetime(connection.deviceRefreshToken, connection.activeTeamId, preview.format);
+          for (const p of lt.players) {
+            if (typeof p.matchesPlayed === 'number') lifetimeByMember.set(p.memberNumber, p.matchesPlayed);
+          }
+        } catch { /* fail soft — lifetime meter simply won't populate */ }
+      }
+      const { merged, added, updated } = mergeRoster(players, preview, lifetimeByMember);
       await onImportPlayers(merged);
       setNotice(`Imported: ${added} added, ${updated} updated (${preview.format === 'NINE' ? '9' : '8'}-ball skill levels).`);
       setPreview(null);

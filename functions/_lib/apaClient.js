@@ -158,6 +158,40 @@ const Q_TEAM_ACHIEVEMENTS = `query teamAchievements($id: Int!) {
   }
 }`;
 
+// Lifetime match counts per roster member, for the APA "10 lifetime matches"
+// eligibility rule. Lifetime stats live on the member's per-format alias
+// (Alias.stats(filter) -> {Eight,Nine}BallLifetimeStatistics), NOT on the
+// team-scoped EightBallPlayer/NineBallPlayer (those are this-session only).
+//
+// UNVERIFIED against live traffic (built from the docs' Apollo-cache notes),
+// so it's kept in its own query, called separately and fail-soft — a wrong
+// field here can only blank the Vegas lifetime meter, never break roster sync.
+// The format filter + inline fragment are injected per call (see getLifetime).
+function lifetimeQuery(format) {
+  const isNine = format === 'NINE';
+  const filter = isNine ? 'NINE' : 'EIGHT';
+  const frag = isNine
+    ? '... on NineBallLifetimeStatistics { matchesPlayed }'
+    : '... on EightBallLifetimeStatistics { matchesPlayed }';
+  return `query teamLifetime($id: Int!) {
+  team(id: $id) {
+    id
+    division { id type }
+    roster {
+      id
+      memberNumber
+      member {
+        id
+        aliases {
+          id
+          stats(filter: ${filter}) { ${frag} }
+        }
+      }
+    }
+  }
+}`;
+}
+
 const Q_TEAM_PAGE = `query teamPage($id: Int!) {
   team(id: $id) {
     id name number isTied standing
@@ -331,6 +365,30 @@ export async function getAchievements(accessToken, teamId) {
   };
 }
 
+// Best-effort lifetime match counts per roster member, for a given format.
+// Sums matchesPlayed across the member's aliases (per-league identities) to get
+// a cross-league lifetime total. Throws ApaError like the others; callers treat
+// it as optional and fail soft.
+export async function getLifetime(accessToken, teamId, format) {
+  const data = await gql('teamLifetime', lifetimeQuery(format), { id: Number(teamId) }, accessToken);
+  const team = data && data.team;
+  if (!team) throw new ApaError('GQL', `Team ${teamId} not found.`);
+  const fmt = (team.division && team.division.type) || format || null;
+  return {
+    teamId: team.id,
+    format: fmt,
+    players: (team.roster || []).map((r) => {
+      const aliases = (r.member && r.member.aliases) || [];
+      let total = null;
+      for (const a of aliases) {
+        const mp = a && a.stats && typeof a.stats.matchesPlayed === 'number' ? a.stats.matchesPlayed : null;
+        if (mp !== null) total = (total || 0) + mp;
+      }
+      return { memberNumber: r.memberNumber, matchesPlayed: total };
+    }),
+  };
+}
+
 // ── High-level helpers ────────────────────────────────────────────────────────
 
 // One-shot: given a stored deviceRefreshToken, return the member's teams.
@@ -364,4 +422,10 @@ export async function scoutTeam(deviceRefreshToken, teamId) {
 export async function syncAchievements(deviceRefreshToken, teamId) {
   const accessToken = await getAccessToken(deviceRefreshToken);
   return getAchievements(accessToken, teamId);
+}
+
+// Best-effort lifetime match counts for a team's roster in a given format.
+export async function syncLifetime(deviceRefreshToken, teamId, format) {
+  const accessToken = await getAccessToken(deviceRefreshToken);
+  return getLifetime(accessToken, teamId, format);
 }

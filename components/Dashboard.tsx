@@ -18,12 +18,18 @@ const NINE = '#F2C14E';
 const GREEN   = '#39C46B';
 const GOLD    = '#F2C14E';
 
-// APA National (Vegas) team eligibility: a player must have played a minimum
-// number of individual matches WITH THE TEAM during the qualifying period,
-// counted per format (8-ball and 9-ball are separate teams/divisions). This is
-// a higher bar than the 4-match playoff eligibility shown above. If your
-// division's rule differs, change this one number.
+// APA "10 lifetime matches" rule: to be eligible for the World Qualifier / Vegas,
+// a player must have at least this many LIFETIME match scores in the format
+// (regular sessions + playoffs + Tri-Annuals all count). Under this, they can't
+// be put up or used for Rule-of-23 math. Counted per format — 8-ball and 9-ball
+// are separate. If your division's number differs, change this one line.
 const VEGAS_THRESHOLD = 10;
+
+// Lifetime matches for the Vegas rule, per format. Prefer the true lifetime count
+// pulled from APA; fall back to this session's team matches if lifetime hasn't
+// been synced yet (e.g. players imported before lifetime sync existed).
+const life8 = (p: Player) => p.lifetime8Ball ?? p.games8Ball;
+const life9 = (p: Player) => p.lifetime9Ball ?? p.games9Ball;
 
 // ── Custom tooltip ─────────────────────────────────────────────────────────────
 const NeonTooltip = ({ active, payload, label }: any) => {
@@ -175,10 +181,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
   // Vegas / Nationals eligibility, per format. Only active players count.
   const activePlayers   = players.filter(p => p.isActive);
-  const vegas8          = [...activePlayers].sort((a, b) => b.games8Ball - a.games8Ball);
-  const vegas9          = [...activePlayers].sort((a, b) => b.games9Ball - a.games9Ball);
-  const vegasQual8      = activePlayers.filter(p => p.games8Ball >= VEGAS_THRESHOLD).length;
-  const vegasQual9      = activePlayers.filter(p => p.games9Ball >= VEGAS_THRESHOLD).length;
+  const vegas8          = [...activePlayers].sort((a, b) => life8(b) - life8(a));
+  const vegas9          = [...activePlayers].sort((a, b) => life9(b) - life9(a));
+  const vegasQual8      = activePlayers.filter(p => life8(p) >= VEGAS_THRESHOLD).length;
+  const vegasQual9      = activePlayers.filter(p => life9(p) >= VEGAS_THRESHOLD).length;
 
   const total8Ball = players.reduce((acc, p) => acc + p.games8Ball, 0);
   const total9Ball = players.reduce((acc, p) => acc + p.games9Ball, 0);
@@ -391,7 +397,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               fontFamily: 'Space Mono, monospace', fontSize: 9, color: 'rgba(239,231,214,0.45)',
               letterSpacing: '0.05em',
             }}>
-              {VEGAS_THRESHOLD} matches / format
+              {VEGAS_THRESHOLD} lifetime matches / format
             </span>
           </div>
         </div>
@@ -403,8 +409,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-10 gap-y-6">
             {([
-              { label: '8-Ball', list: vegas8, qual: vegasQual8, get: (p: Player) => p.games8Ball },
-              { label: '9-Ball', list: vegas9, qual: vegasQual9, get: (p: Player) => p.games9Ball },
+              { label: '8-Ball', list: vegas8, qual: vegasQual8, get: life8 },
+              { label: '9-Ball', list: vegas9, qual: vegasQual9, get: life9 },
             ]).map(col => (
               <div key={col.label}>
                 <div className="flex items-center justify-between mb-4">

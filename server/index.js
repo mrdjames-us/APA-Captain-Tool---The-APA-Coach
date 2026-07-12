@@ -8,7 +8,7 @@
 
 import express from 'express';
 import cors from 'cors';
-import { login, syncTeams, syncTeam, scoutTeam, syncAchievements, ApaError } from '../functions/_lib/apaClient.js';
+import { login, syncTeams, syncTeam, scoutTeam, syncAchievements, syncLifetime, ApaError } from '../functions/_lib/apaClient.js';
 
 const app = express();
 const PORT = process.env.APA_SERVER_PORT || 3001;
@@ -82,6 +82,17 @@ app.post('/api/apa/achievements', async (req, res) => {
   if (!teamId) return res.status(400).json({ success: false, error: 'teamId is required.' });
   try {
     res.json({ success: true, ...(await syncAchievements(deviceRefreshToken, teamId)) });
+  } catch (err) {
+    sendError(res, err);
+  }
+});
+
+app.post('/api/apa/lifetime', async (req, res) => {
+  const { deviceRefreshToken, teamId, format } = req.body || {};
+  if (!deviceRefreshToken) return res.status(401).json({ success: false, error: 'Not connected to APA.' });
+  if (!teamId) return res.status(400).json({ success: false, error: 'teamId is required.' });
+  try {
+    res.json({ success: true, ...(await syncLifetime(deviceRefreshToken, teamId, format)) });
   } catch (err) {
     sendError(res, err);
   }

@@ -184,6 +184,36 @@ fragment matchListItem on Match {
 - `Team` { id name number active standing isTied roster matches division location session }
 - Format enum: `EIGHT`, `NINE`. Skill levels 1–7 (8-ball), 1–9 (9-ball).
 
+## Lifetime match counts (UNVERIFIED — added for the "10 lifetime matches" rule)
+
+The Vegas/World-Qualifier eligibility rule needs each player's LIFETIME match
+count per format (not the team-scoped `matchesPlayed` on EightBallPlayer/
+NineBallPlayer, which is this-session only). Lifetime stats live on the member's
+per-format alias: `Member.aliases[].stats(filter: EIGHT|NINE)` →
+`{Eight,Nine}BallLifetimeStatistics { matchesPlayed }`.
+
+Query added in `apaClient.js` as `teamLifetime` (built dynamically per format),
+called by the isolated `/api/apa/lifetime` endpoint and merged into the roster on
+import (summing `matchesPlayed` across a member's aliases for a cross-league
+total). **This query was written from the cache-extract notes, NOT confirmed
+against live traffic** — kept isolated + fail-soft so a wrong field only blanks
+the Vegas lifetime meter, never roster/schedule sync. If the meter stays empty
+after a fresh import, capture the real `Alias.stats` shape from live traffic and
+correct `lifetimeQuery()`.
+
+```graphql
+query teamLifetime($id: Int!) {
+  team(id: $id) {
+    id
+    division { id type }
+    roster {
+      id memberNumber
+      member { id aliases { id stats(filter: EIGHT) { ... on EightBallLifetimeStatistics { matchesPlayed } } } }
+    }
+  }
+}
+```
+
 ## Example real IDs (David's account, for testing)
 
 - Member id: `3402779`

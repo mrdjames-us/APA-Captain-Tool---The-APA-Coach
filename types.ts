@@ -23,6 +23,13 @@ export interface Player {
   pa8Ball?: number;
   ppm9Ball?: number;
   pa9Ball?: number;
+  // Lifetime match count per format (across all sessions/leagues), used for the
+  // APA "10 lifetime matches" Vegas/World-Qualifier eligibility rule. Distinct
+  // from games8Ball/games9Ball, which are THIS session's matches on the team.
+  // Best-effort: only populated when the isolated lifetime-stats fetch succeeds
+  // during an import; left undefined otherwise (the meter falls back gracefully).
+  lifetime8Ball?: number;
+  lifetime9Ball?: number;
 }
 
 export enum GameType {
@@ -179,6 +186,20 @@ export interface APAAchievementPlayer {
 export interface APAAchievements {
   teamId: number;
   players: APAAchievementPlayer[];
+}
+
+// Lifetime match counts per player (across all sessions/leagues) for a team's
+// format. Best-effort — the underlying query is isolated so it can fail without
+// affecting roster/schedule sync.
+export interface APALifetimePlayer {
+  memberNumber: string;
+  matchesPlayed: number | null;
+}
+
+export interface APALifetime {
+  teamId: number;
+  format: 'EIGHT' | 'NINE' | null;
+  players: APALifetimePlayer[];
 }
 
 // What we persist locally to keep syncing without re-entering a password.

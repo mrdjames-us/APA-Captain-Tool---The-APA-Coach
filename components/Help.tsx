@@ -136,11 +136,19 @@ export const Help: React.FC = () => (
         A player generally needs at least 4 matches played with the team in a format
         to be playoff-eligible. The Dashboard's LED bars track this per player.
       </Item>
-      <Item term="Vegas / Nationals eligibility (10 matches)">
-        Advancing toward Nationals takes more matches played with the team. The
-        Dashboard's Vegas Eligibility section shows each player's progress toward the
-        threshold and how many more they need. If your division's number differs,
-        it's a one-line change — just ask.
+      <Item term="Vegas eligibility — 10 lifetime matches">
+        For the World Qualifier / Vegas, a player needs at least 10 <em>lifetime</em>
+        match scores in that format — regular sessions, playoffs, and Tri-Annuals all
+        count. Under 10, they can't be put up or even used for Rule-of-23 math. The
+        Dashboard's Vegas Eligibility section tracks each player's lifetime total per
+        format and how many more they need. (Lifetime counts are pulled from APA on
+        import; re-sync to refresh them.)
+      </Item>
+      <Item term="Vegas eligibility — the Spring 4-game rule">
+        Separately, everyone who wants in on the World Qualifier must play at least 4
+        times with the qualified team during the regular Spring session (playoff
+        matches don't count toward this one). The Dashboard's playoff eligibility bar
+        is the closest current view of per-session match counts.
       </Item>
       <Item term="8-ball and 9-ball are separate">
         They're different teams and divisions, so stats and eligibility never blend

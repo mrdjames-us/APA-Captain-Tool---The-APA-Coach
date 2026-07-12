@@ -1,7 +1,7 @@
 // Frontend transport for the APA (poolplayers.com) sync endpoints.
 // In production these are Cloudflare Pages Functions (functions/api/apa/*);
 // in local dev they're the Express mirror (npm run dev:full), proxied by Vite.
-import { APATeam, APARoster, APASchedule, APATeamPage, APAAchievements } from '../types';
+import { APATeam, APARoster, APASchedule, APATeamPage, APAAchievements, APALifetime } from '../types';
 
 const BASE = '/api/apa';
 
@@ -88,4 +88,12 @@ export interface AchievementsResult extends ApiOk, APAAchievements {}
 // cached-state dump, not verified live traffic like the rest of the API.
 export function apaAchievements(deviceRefreshToken: string, teamId: number): Promise<AchievementsResult> {
   return post<AchievementsResult>('/achievements', { deviceRefreshToken, teamId });
+}
+
+export interface LifetimeResult extends ApiOk, APALifetime {}
+
+// Lifetime match counts per roster member (for the 10-lifetime-match Vegas
+// rule). Best-effort like achievements — treat failures as "unavailable".
+export function apaLifetime(deviceRefreshToken: string, teamId: number, format: 'EIGHT' | 'NINE' | null): Promise<LifetimeResult> {
+  return post<LifetimeResult>('/lifetime', { deviceRefreshToken, teamId, format });
 }
