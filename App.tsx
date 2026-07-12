@@ -10,6 +10,7 @@ import { ScheduleView } from './components/ScheduleView';
 import { APAConnect } from './components/APAConnect';
 import { Scouting } from './components/Scouting';
 import { GettingStarted } from './components/GettingStarted';
+import { Help } from './components/Help';
 
 import { useAuth } from './hooks/useAuth';
 import { usePlayers, useMatches, useArchives, useSchedule, useSeasonWeek, useApaConnection } from './hooks/useFirestore';
@@ -203,6 +204,8 @@ const App: React.FC = () => {
       {activeTab === 'scouting' && (
         <Scouting connection={apaConnection} />
       )}
+
+      {activeTab === 'help' && <Help />}
 
       {activeTab === 'history' && (
         <Performance
