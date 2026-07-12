@@ -77,6 +77,12 @@ export const Help: React.FC = () => (
         From <strong>APA Sync</strong>, import your team. Players come in with their
         real skill levels, win/loss records, and PPM/PA per format. Re-run any time
         to pull the latest numbers.
+        <span style={{ display: 'block', marginTop: 8, color: GOLD, fontSize: 12.5 }}>
+          Tip: only import the teams you actually captain — not every team you're a
+          member on. This tool is built for running your own teams, so importing
+          teams you just play on clutters your roster and stats with players you
+          don't manage.
+        </span>
       </Step>
       <Step n={3} title="Sync your schedule">
         On the <strong>Schedule</strong> tab, click <strong>Sync from APA</strong> to
