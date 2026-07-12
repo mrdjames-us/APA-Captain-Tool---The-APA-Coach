@@ -100,6 +100,9 @@ export const APAConnect: React.FC<Props> = ({
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [preview, setPreview] = useState<APARoster | null>(null);
+  // TEMP diagnostic: surfaces the lifetime-sync outcome so we can verify/fix the
+  // (unverified) teamLifetime query against live traffic. Remove once confirmed.
+  const [lifetimeDebug, setLifetimeDebug] = useState<string | null>(null);
 
   const handleConnect = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -158,13 +161,18 @@ export const APAConnect: React.FC<Props> = ({
       // separate, unverified query — never let it block or fail the import. If it
       // doesn't return, players import without lifetime and the meter falls back.
       let lifetimeByMember = new Map<string, number>();
+      setLifetimeDebug(null);
       if (connection?.activeTeamId) {
         try {
           const lt = await apaLifetime(connection.deviceRefreshToken, connection.activeTeamId, preview.format);
           for (const p of lt.players) {
             if (typeof p.matchesPlayed === 'number') lifetimeByMember.set(p.memberNumber, p.matchesPlayed);
           }
-        } catch { /* fail soft — lifetime meter simply won't populate */ }
+          const withData = lt.players.filter(p => typeof p.matchesPlayed === 'number').length;
+          setLifetimeDebug(`Lifetime sync OK: ${withData}/${lt.players.length} players returned a lifetime count. Sample: ${lt.players.slice(0, 3).map(p => `${p.memberNumber}=${p.matchesPlayed}`).join(', ') || '(none)'}`);
+        } catch (e: any) {
+          setLifetimeDebug(`Lifetime sync FAILED: ${e?.message || e}`);
+        }
       }
       const { merged, added, updated } = mergeRoster(players, preview, lifetimeByMember);
       await onImportPlayers(merged);
@@ -210,6 +218,12 @@ export const APAConnect: React.FC<Props> = ({
         <div className="flex items-start gap-2 px-4 py-3 rounded text-sm"
           style={{ background: 'rgba(57,196,107,0.07)', border: '1px solid rgba(57,196,107,0.3)', color: '#7dffb8' }}>
           <CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0" /> <span>{notice}</span>
+        </div>
+      )}
+      {lifetimeDebug && (
+        <div className="px-4 py-3 rounded font-mono"
+          style={{ background: 'rgba(57,167,201,0.06)', border: '1px dashed rgba(57,167,201,0.35)', color: 'rgba(180,220,255,0.85)', fontSize: 11, wordBreak: 'break-word' }}>
+          <span style={{ opacity: 0.6 }}>[diagnostic] </span>{lifetimeDebug}
         </div>
       )}
 
