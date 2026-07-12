@@ -152,8 +152,8 @@ const Q_TEAM_ACHIEVEMENTS = `query teamAchievements($id: Int!) {
       id
       memberNumber
       displayName
-      ... on EightBallPlayer { eightOnBreaks eightBallBreakAndRuns miniSlams rackless }
-      ... on NineBallPlayer  { nineBallBreakAndRuns nineOnSnaps miniSlams skunks }
+      ... on EightBallPlayer { eightOnBreaks breakAndRuns8: breakAndRuns miniSlams rackless }
+      ... on NineBallPlayer  { breakAndRuns9: breakAndRuns nineOnSnaps miniSlams skunks }
     }
   }
 }`;
@@ -321,9 +321,9 @@ export async function getAchievements(accessToken, teamId) {
       memberNumber: r.memberNumber,
       name: r.displayName,
       eightOnBreaks: r.eightOnBreaks ?? null,
-      breakAndRuns8: r.eightBallBreakAndRuns ?? null,
+      breakAndRuns8: r.breakAndRuns8 ?? null,
       rackless: r.rackless ?? null,
-      breakAndRuns9: r.nineBallBreakAndRuns ?? null,
+      breakAndRuns9: r.breakAndRuns9 ?? null,
       nineOnSnaps: r.nineOnSnaps ?? null,
       skunks: r.skunks ?? null,
       miniSlams: r.miniSlams ?? null,

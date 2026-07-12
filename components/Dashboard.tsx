@@ -5,7 +5,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, PieChart, Pie, Cell, Legend
 } from 'recharts';
-import { CheckCircle2, AlertTriangle, Target, ChevronUp, ChevronDown, Zap } from 'lucide-react';
+import { CheckCircle2, AlertTriangle, Target, ChevronUp, ChevronDown, Zap, Plane } from 'lucide-react';
 
 interface DashboardProps {
   players: Player[];
@@ -16,6 +16,14 @@ interface DashboardProps {
 const CYAN    = '#39A7C9';
 const NINE = '#F2C14E';
 const GREEN   = '#39C46B';
+const GOLD    = '#F2C14E';
+
+// APA National (Vegas) team eligibility: a player must have played a minimum
+// number of individual matches WITH THE TEAM during the qualifying period,
+// counted per format (8-ball and 9-ball are separate teams/divisions). This is
+// a higher bar than the 4-match playoff eligibility shown above. If your
+// division's rule differs, change this one number.
+const VEGAS_THRESHOLD = 10;
 
 // ── Custom tooltip ─────────────────────────────────────────────────────────────
 const NeonTooltip = ({ active, payload, label }: any) => {
@@ -86,6 +94,46 @@ const LedBar: React.FC<{ label: string; count: number }> = ({ label, count }) =>
   );
 };
 
+// ── Vegas eligibility meter (progress toward VEGAS_THRESHOLD matches) ──────────
+const VegasMeter: React.FC<{ name: string; count: number }> = ({ name, count }) => {
+  const qualified = count >= VEGAS_THRESHOLD;
+  const remaining = Math.max(0, VEGAS_THRESHOLD - count);
+  const pct = Math.min(100, (count / VEGAS_THRESHOLD) * 100);
+  const color = qualified ? GREEN : GOLD;
+
+  return (
+    <div className="flex items-center gap-3">
+      <span
+        style={{ flex: '0 0 92px', fontWeight: 700, fontSize: 12, color: '#EFE7D6', letterSpacing: '0.03em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}
+        title={name}
+      >
+        {name}
+      </span>
+      <div style={{ flex: 1, height: 6, background: 'rgba(239,231,214,0.08)', borderRadius: 3, overflow: 'hidden' }}>
+        <div style={{
+          height: '100%',
+          width: `${pct}%`,
+          background: color,
+          boxShadow: `0 0 6px ${color}, 0 0 12px ${color}55`,
+          borderRadius: 3,
+          transition: 'width 0.5s ease',
+        }} />
+      </div>
+      <span style={{ flex: '0 0 auto', fontFamily: 'Space Mono, monospace', fontSize: 11, color, textShadow: `0 0 8px ${color}66`, minWidth: 62, textAlign: 'right' }}>
+        {qualified ? 'QUAL' : `${count}/${VEGAS_THRESHOLD}`}
+      </span>
+      {!qualified && (
+        <span style={{ flex: '0 0 auto', fontFamily: 'Orbitron, sans-serif', fontSize: 8, letterSpacing: '0.1em', color: 'rgba(239,231,214,0.4)', minWidth: 60, textAlign: 'right' }}>
+          +{remaining} TO GO
+        </span>
+      )}
+      {qualified && (
+        <CheckCircle2 style={{ flex: '0 0 auto', width: 14, height: 14, color: GREEN }} />
+      )}
+    </div>
+  );
+};
+
 export const Dashboard: React.FC<DashboardProps> = ({
   players,
   currentWeek: weekProp,
@@ -124,6 +172,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
     '8-Ball': p.games8Ball,
     '9-Ball': p.games9Ball,
   }));
+
+  // Vegas / Nationals eligibility, per format. Only active players count.
+  const activePlayers   = players.filter(p => p.isActive);
+  const vegas8          = [...activePlayers].sort((a, b) => b.games8Ball - a.games8Ball);
+  const vegas9          = [...activePlayers].sort((a, b) => b.games9Ball - a.games9Ball);
+  const vegasQual8      = activePlayers.filter(p => p.games8Ball >= VEGAS_THRESHOLD).length;
+  const vegasQual9      = activePlayers.filter(p => p.games9Ball >= VEGAS_THRESHOLD).length;
 
   const total8Ball = players.reduce((acc, p) => acc + p.games8Ball, 0);
   const total9Ball = players.reduce((acc, p) => acc + p.games9Ball, 0);
@@ -314,6 +369,58 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 <div className="flex flex-col gap-4">
                   <LedBar label="8-Ball" count={player.games8Ball} />
                   <LedBar label="9-Ball" count={player.games9Ball} />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* ── Vegas / Nationals Eligibility ─────────────────────────────────────── */}
+      <section className="card rounded-3xl" style={{ padding: '28px 28px 32px', borderColor: `${GOLD}2e` }}>
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+          <div className="flex items-center gap-3">
+            <Plane style={{ width: 20, height: 20, color: GOLD }} />
+            <h3
+              className="font-orbitron"
+              style={{ fontSize: 15, fontWeight: 800, color: '#EFE7D6', letterSpacing: '0.1em' }}
+            >
+              VEGAS ELIGIBILITY
+            </h3>
+            <span style={{
+              fontFamily: 'Space Mono, monospace', fontSize: 9, color: 'rgba(239,231,214,0.45)',
+              letterSpacing: '0.05em',
+            }}>
+              {VEGAS_THRESHOLD} matches / format
+            </span>
+          </div>
+        </div>
+
+        {activePlayers.length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '40px 0', color: 'rgba(239,231,214,0.3)' }}>
+            <p className="section-label">No active players in roster</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-10 gap-y-6">
+            {([
+              { label: '8-Ball', list: vegas8, qual: vegasQual8, get: (p: Player) => p.games8Ball },
+              { label: '9-Ball', list: vegas9, qual: vegasQual9, get: (p: Player) => p.games9Ball },
+            ]).map(col => (
+              <div key={col.label}>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <div style={{ width: 3, height: 16, background: GOLD, borderRadius: 2, boxShadow: `0 0 8px ${GOLD}` }} />
+                    <span className="section-label" style={{ color: 'rgba(239,231,214,0.85)' }}>{col.label}</span>
+                  </div>
+                  <span style={{ fontFamily: 'Space Mono, monospace', fontSize: 12, color: '#EFE7D6' }}>
+                    <span style={{ color: GOLD, textShadow: `0 0 10px ${GOLD}99` }}>{col.qual}</span>
+                    <span style={{ color: 'rgba(239,231,214,0.3)' }}> / {activePlayers.length} qual</span>
+                  </span>
+                </div>
+                <div className="flex flex-col gap-3">
+                  {col.list.map(p => (
+                    <VegasMeter key={p.id} name={p.name} count={col.get(p)} />
+                  ))}
                 </div>
               </div>
             ))}
