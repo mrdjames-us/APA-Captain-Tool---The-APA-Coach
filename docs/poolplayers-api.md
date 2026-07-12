@@ -184,22 +184,31 @@ fragment matchListItem on Match {
 - `Team` { id name number active standing isTied roster matches division location session }
 - Format enum: `EIGHT`, `NINE`. Skill levels 1–7 (8-ball), 1–9 (9-ball).
 
-## Lifetime match counts (UNVERIFIED — added for the "10 lifetime matches" rule)
+## Lifetime match counts (VERIFIED 2026-07-12 — for the "10 lifetime matches" rule)
 
 The Vegas/World-Qualifier eligibility rule needs each player's LIFETIME match
 count per format (not the team-scoped `matchesPlayed` on EightBallPlayer/
 NineBallPlayer, which is this-session only). Lifetime stats live on the member's
-per-format alias: `Member.aliases[].stats(filter: EIGHT|NINE)` →
-`{Eight,Nine}BallLifetimeStatistics { matchesPlayed }`.
+per-format alias: `Member.aliases[].stats(filter: EIGHT|NINE)`.
 
-Query added in `apaClient.js` as `teamLifetime` (built dynamically per format),
-called by the isolated `/api/apa/lifetime` endpoint and merged into the roster on
-import (summing `matchesPlayed` across a member's aliases for a cross-league
-total). **This query was written from the cache-extract notes, NOT confirmed
-against live traffic** — kept isolated + fail-soft so a wrong field only blanks
-the Vegas lifetime meter, never roster/schedule sync. If the meter stays empty
-after a fresh import, capture the real `Alias.stats` shape from live traffic and
-correct `lifetimeQuery()`.
+**⚠️ `stats` is an ARRAY, not a single object** — confirmed against live traffic.
+It returns a list of `{Eight,Nine}BallLifetimeStatistics { matchesPlayed }`
+objects. Sum `matchesPlayed` across the array AND across a member's aliases for a
+cross-league lifetime total. Reading `alias.stats.matchesPlayed` (as if an object)
+silently yields null for everyone.
+
+Real captured response (David, member 3402779, 8-ball):
+```json
+{ "id": 92263710, "memberNumber": "64001865",
+  "member": { "id": 3402779, "aliases": [
+    { "id": 3267491, "displayName": "David James", "formats": ["EIGHT","NINE","MASTERS"],
+      "stats": [ { "__typename": "EightBallLifetimeStatistics", "matchesPlayed": 76 } ] } ] } }
+```
+
+Query in `apaClient.js` as `teamLifetime` (built dynamically per format), called by
+the isolated `/api/apa/lifetime` endpoint, merged into the roster on import into
+`Player.lifetime8Ball/9Ball`. Kept isolated + fail-soft so it can never break
+roster/schedule sync.
 
 ```graphql
 query teamLifetime($id: Int!) {

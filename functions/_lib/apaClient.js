@@ -184,9 +184,7 @@ function lifetimeQuery(format) {
         id
         aliases {
           id
-          displayName
-          formats
-          stats(filter: ${filter}) { __typename ${frag} }
+          stats(filter: ${filter}) { ${frag} }
         }
       }
     }
@@ -376,19 +374,18 @@ export async function getLifetime(accessToken, teamId, format) {
   const team = data && data.team;
   if (!team) throw new ApaError('GQL', `Team ${teamId} not found.`);
   const fmt = (team.division && team.division.type) || format || null;
-  // TEMP diagnostic: raw shape of the first roster member so we can see whether
-  // aliases is empty, stats is null, or the concrete stats type differs.
-  const sampleRaw = JSON.stringify((team.roster || [])[0] || null);
   return {
     teamId: team.id,
     format: fmt,
-    sampleRaw,
     players: (team.roster || []).map((r) => {
       const aliases = (r.member && r.member.aliases) || [];
       let total = null;
       for (const a of aliases) {
-        const mp = a && a.stats && typeof a.stats.matchesPlayed === 'number' ? a.stats.matchesPlayed : null;
-        if (mp !== null) total = (total || 0) + mp;
+        // stats is an ARRAY of lifetime-stat objects (filtered to this format);
+        // sum across a member's aliases for a cross-league lifetime total.
+        for (const s of (a && a.stats) || []) {
+          if (s && typeof s.matchesPlayed === 'number') total = (total || 0) + s.matchesPlayed;
+        }
       }
       return { memberNumber: r.memberNumber, matchesPlayed: total };
     }),
