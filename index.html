@@ -227,6 +227,61 @@
     </style>
 </head>
 <body class="grid-bg">
+    
+<!-- ===== DJ Prints 3D house ad : pocket markers (injected) ===== -->
+<div id="pmBanner" hidden>
+  <img id="pmImg" src="https://djprints3d.com/img/marker_7.png"
+       alt="Custom 8-ball pocket marker" width="72" height="72" loading="lazy">
+  <div id="pmCopy">
+    <strong>Custom 8-ball pocket markers</strong>
+    <span>Your saying, your team colors. Team of 8 with your name on it &mdash; $40.</span>
+  </div>
+  <a id="pmCta" href="https://djprints3d.com/?utm_source=apacaptain&amp;utm_medium=banner&amp;utm_campaign=house"
+     target="_blank" rel="noopener">Shop&nbsp;&rarr;</a>
+  <button id="pmX" type="button" aria-label="Dismiss">&times;</button>
+</div>
+<style>
+#pmBanner{display:none;align-items:center;gap:14px;position:relative;
+  margin:0 0 16px;padding:12px 44px 12px 14px;border-radius:12px;
+  background:linear-gradient(100deg,#0d3f28,#0e5c3a 60%,#0d3f28);
+  border:1px solid rgba(212,169,66,.45);
+  box-shadow:0 6px 18px rgba(0,0,0,.28);
+  font-family:"Segoe UI",system-ui,-apple-system,sans-serif}
+#pmBanner[data-on="1"]{display:flex}
+#pmImg{width:64px;height:64px;flex:0 0 auto;filter:drop-shadow(0 3px 6px rgba(0,0,0,.45))}
+#pmCopy{flex:1 1 auto;min-width:0;line-height:1.35}
+#pmCopy strong{display:block;color:#f5f0e6;font-size:15px;letter-spacing:.01em}
+#pmCopy span{display:block;color:#c9d8ce;font-size:12.5px;margin-top:2px}
+#pmCta{flex:0 0 auto;background:#d4a942;color:#1c2833;text-decoration:none;
+  font-weight:700;font-size:13.5px;padding:9px 16px;border-radius:7px;white-space:nowrap;
+  transition:transform .12s,background .12s}
+#pmCta:hover{background:#e8bf5d;transform:translateY(-1px)}
+#pmX{position:absolute;top:6px;right:8px;background:none;border:0;cursor:pointer;
+  color:#8fa89a;font-size:20px;line-height:1;padding:2px 6px;border-radius:5px}
+#pmX:hover{color:#f5f0e6;background:rgba(255,255,255,.08)}
+@media(max-width:560px){
+  #pmBanner{gap:10px;padding:10px 38px 10px 10px}
+  #pmImg{width:46px;height:46px}
+  #pmCopy strong{font-size:13.5px}
+  #pmCopy span{font-size:11.5px}
+  #pmCta{padding:8px 12px;font-size:12.5px}
+}
+</style>
+<script>
+(function(){
+  var b=document.getElementById('pmBanner');
+  if(!b) return;
+  var KEY='pm-banner-dismissed-v1', hide=0;
+  try{ hide = localStorage.getItem(KEY)==='1'; }catch(e){}
+  if(!hide){ b.hidden=false; b.setAttribute('data-on','1'); }
+  document.getElementById('pmX').addEventListener('click',function(){
+    b.removeAttribute('data-on'); b.hidden=true;
+    try{ localStorage.setItem(KEY,'1'); }catch(e){}
+  });
+})();
+</script>
+<!-- ===== end house ad ===== -->
+
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
 </body>
